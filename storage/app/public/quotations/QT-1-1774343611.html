@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quotation #QT-20260324-0001</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#f7f8fa; color:#222; }
+  .wrapper { max-width:820px; margin:0 auto; background:#fff; }
+  .header { background:#c0392b; color:#fff; padding:36px 40px; display:flex; justify-content:space-between; align-items:center; }
+  .header h1 { font-size:28px; font-weight:700; letter-spacing:1px; }
+  .header .quote-no { font-size:14px; opacity:.85; margin-top:4px; }
+  .badge { background:rgba(255,255,255,.2); border-radius:20px; padding:4px 14px; font-size:13px; font-weight:600; }
+  .body { padding:36px 40px; }
+  .meta-row { display:flex; gap:40px; margin-bottom:32px; }
+  .meta-block h3 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#888; margin-bottom:8px; }
+  .meta-block p { font-size:14px; line-height:1.6; }
+  table { width:100%; border-collapse:collapse; margin-bottom:24px; }
+  thead tr { background:#f7f8fa; }
+  thead th { padding:11px 14px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#666; border-bottom:2px solid #e8e8e8; }
+  .totals-row { display:flex; justify-content:flex-end; margin-bottom:32px; }
+  .totals-table { width:280px; }
+  .totals-table td { padding:7px 0; font-size:14px; }
+  .totals-table .total-row td { font-size:17px; font-weight:700; color:#c0392b; border-top:2px solid #e8e8e8; padding-top:10px; }
+  .terms { margin-top:32px; padding:20px 24px; background:#f7f8fa; border-radius:8px; font-size:13px; color:#555; line-height:1.7; }
+  .terms h4 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#888; margin-bottom:8px; }
+  .footer { padding:24px 40px; border-top:1px solid #eee; display:flex; justify-content:space-between; font-size:12px; color:#999; }
+  @media print { body { background:#fff; } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div>
+      <h1>PRINT WORKS LK</h1>
+      <div class="quote-no">printworks.lk</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:22px;font-weight:700;">QUOTATION</div>
+      <div class="quote-no">#QT-20260324-0001</div>
+      <div class="badge" style="margin-top:8px;">Draft</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="meta-row">
+      <div class="meta-block">
+        <h3>Prepared For</h3>
+        <p><strong>" . e(Dinuja Dulsara) . "</strong><br>dinuja<br>Temple road Rolawa ambanpola<br>dulsaradinuja47@gmail.com<br>+94763237574</p>
+      </div>
+      <div class="meta-block">
+        <h3>Quotation Details</h3>
+        <p>Date: <strong>24 Mar 2026</strong><br>Valid Until: <strong>07 Apr 2026</strong><br>Quote #: <strong>QT-20260324-0001</strong></p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;">Description</th>
+          <th style="text-align:center;width:70px;">Qty</th>
+          <th style="text-align:right;width:110px;">Unit Price</th>
+          <th style="text-align:center;width:80px;">Discount</th>
+          <th style="text-align:right;width:120px;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+            <tr>
+                <td style='padding:10px 14px;border-bottom:1px solid #f0f0f0;'>laptop stickers</td>
+                <td style='padding:10px 14px;border-bottom:1px solid #f0f0f0;text-align:center;'>1</td>
+                <td style='padding:10px 14px;border-bottom:1px solid #f0f0f0;text-align:right;'>Rs. 500.00</td>
+                <td style='padding:10px 14px;border-bottom:1px solid #f0f0f0;text-align:center;'><span style='color:#e53e3e;'>-10.00%</span></td>
+                <td style='padding:10px 14px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:600;'>Rs. 450.00</td>
+            </tr></tbody>
+    </table>
+
+    <div class="totals-row">
+      <table class="totals-table">
+        <tr><td>Subtotal</td><td style="text-align:right;">Rs. " . number_format(450.00, 2) . "</td></tr>
+        " . (0.00 > 0 ? "<tr><td style='color:#e53e3e;'>Discount</td><td style='text-align:right;color:#e53e3e;'>- Rs. " . number_format(0.00, 2) . "</td></tr>" : '') . "
+        " . (0.00 > 0 ? "<tr><td>Tax</td><td style='text-align:right;'>Rs. " . number_format(0.00, 2) . "</td></tr>" : '') . "
+        <tr class='total-row'><td><strong>TOTAL</strong></td><td style='text-align:right;'><strong>Rs. " . number_format(450.00, 2) . "</strong></td></tr>
+      </table>
+    </div>
+
+    " . ( ? "<div class='terms'><h4>Payment Terms</h4>" . nl2br(e()) . "</div>" : '') . "
+    " . ( ? "<div class='terms' style='margin-top:12px;'><h4>Delivery Details</h4>" . nl2br(e()) . "</div>" : '') . "
+    " . ( ? "<div class='terms' style='margin-top:12px;'><h4>Terms & Conditions</h4>" . nl2br(e()) . "</div>" : '') . "
+    " . ( ? "<div class='terms' style='margin-top:12px;'><h4>Notes</h4>" . nl2br(e()) . "</div>" : '') . "
+  </div>
+
+  <div class="footer">
+    <div>Print Works LK | printworks.lk | Thank you for your business!</div>
+    <div>Generated: " . now()->format('d M Y H:i') . "</div>
+  </div>
+</div>
+</body>
+</html>

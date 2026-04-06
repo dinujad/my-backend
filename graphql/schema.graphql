@@ -1,0 +1,14 @@
+# PrintWorks GraphQL schema (Lighthouse)
+# Run: php artisan lighthouse:print-schema (after install)
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
+}
+
+type Query {
+    me: User @auth
+}
+
+# type Mutation { ... }
