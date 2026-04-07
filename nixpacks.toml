@@ -1,5 +1,4 @@
-[providers]
-  php = true
+providers = ["php"]
 
 [phases.setup]
   nixPkgs = ["php83", "php83Packages.composer"]
