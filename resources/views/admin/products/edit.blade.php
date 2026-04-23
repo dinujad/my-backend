@@ -760,23 +760,28 @@
             </div>
 
             <!-- Media / Image -->
+            @php
+                $adminProductMainImageUrl = $product->image && str_starts_with($product->image, 'http')
+                    ? $product->image
+                    : ($product->image ? '/' . ltrim($product->image, '/') : null);
+            @endphp
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5">
                 <div>
                     <h2 class="font-semibold text-gray-800 pb-2 border-b border-gray-100">Main Product Image</h2>
-                    <div x-data="{ mainPreview: @json($product->image && str_starts_with($product->image, 'http') ? $product->image : ($product->image ? '/' . ltrim($product->image, '/') : null)), mainImageError: null }">
-                        <input type="file" name="main_image" accept="image/*" 
-                            @change="
+                    <div x-data='{ mainPreview: @json($adminProductMainImageUrl), originalMainUrl: @json($adminProductMainImageUrl), mainImageError: null }'>
+                        <input type="file" name="main_image" accept="image/*"
+                            x-on:change="
                                 mainImageError = null;
                                 const f = $event.target.files[0];
                                 if(!f) {
-                                    mainPreview = @json($product->image && str_starts_with($product->image, 'http') ? $product->image : ($product->image ? '/' . ltrim($product->image, '/') : null));
+                                    mainPreview = originalMainUrl;
                                     return;
                                 }
                                 const ext = (f.name.split('.').pop() || '').toLowerCase();
                                 const allowed = ['jpeg','jpg','png','webp'];
                                 if(!allowed.includes(ext) && !(f.type && f.type.startsWith('image/'))) {
                                     mainImageError = 'Main product image must be jpeg/png/jpg/webp only.';
-                                    mainPreview = @json($product->image && str_starts_with($product->image, 'http') ? $product->image : ($product->image ? '/' . ltrim($product->image, '/') : null));
+                                    mainPreview = originalMainUrl;
                                     $event.target.value = '';
                                     return;
                                 }
@@ -799,7 +804,7 @@
                 <div>
                     <h2 class="font-semibold text-gray-800 pb-2 border-b border-gray-100">Product Gallery</h2>
                     
-                    <div class="grid grid-cols-3 gap-2 mb-4 mt-2" x-data="{ existingImages: @json($product->images->whereNull('product_variation_id')->values()) }">
+                    <div class="grid grid-cols-3 gap-2 mb-4 mt-2" x-data='{ existingImages: @json($product->images->whereNull('product_variation_id')->values()) }'>
                         <template x-for="(img, i) in existingImages" :key="img.id || i">
                             <div class="relative group aspect-square rounded border border-gray-200 overflow-hidden bg-gray-50">
                                 <img :src="'/' + img.file_path" class="w-full h-full object-cover">
