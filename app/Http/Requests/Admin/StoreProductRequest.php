@@ -72,11 +72,11 @@ class StoreProductRequest extends FormRequest
             'tags' => 'nullable|array',
             'tags.*' => 'exists:tags,id',
             
-            // Local Images
-            'main_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            // Local Images (max in kilobytes; 10240 = 10 MB, within uploads.ini post limits)
+            'main_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'existing_images' => 'nullable|array',
             'product_images' => 'nullable|array',
-            'product_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            'product_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:10240',
             
             // Tier Pricing
             'enable_tier_pricing' => 'boolean',
@@ -94,7 +94,7 @@ class StoreProductRequest extends FormRequest
             'variations.*.stock_quantity' => 'nullable|integer',
             'variations.*.stock_status' => 'required_with:variations|in:instock,outofstock,onbackorder',
             
-            'variations.*.image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'variations.*.image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'variations.*.enable_tier_pricing' => 'boolean',
             'variations.*.price_tiers' => 'nullable|array',
             'variations.*.price_tiers.*.min_qty' => 'required_with:variations.*.price_tiers|integer|min:1',
