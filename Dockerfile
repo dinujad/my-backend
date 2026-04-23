@@ -1,6 +1,6 @@
-FROM php:8.3-apache
+FROM php:8.4-apache
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
     zip \
@@ -10,8 +10,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libicu-dev \
     curl \
-    && docker-php-ext-install pdo pdo_mysql mysqli mbstring zip exif intl pcntl \
-    && a2enmod rewrite
+    && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql mysqli mbstring zip exif intl pcntl \
+    && a2enmod rewrite headers \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -22,13 +23,20 @@ COPY uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-RUN echo '<Directory /var/www/html/public>' >> /etc/apache2/apache2.conf \
-    && echo 'AllowOverride All' >> /etc/apache2/apache2.conf \
-    && echo 'Require all granted' >> /etc/apache2/apache2.conf \
-    && echo '</Directory>' >> /etc/apache2/apache2.conf \
-    && sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+# Point Apache + PHP image config at Laravel's web root (both files ship paths to /var/www/html).
+RUN set -eux; \
+    sed -ri 's!/var/www/html!/var/www/html/public!g' \
+        /etc/apache2/sites-available/000-default.conf \
+        /etc/apache2/conf-available/docker-php.conf; \
+    apache2ctl configtest
 
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 80
+
+# Coolify probes the first exposed port; give Laravel time to boot on cold start.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
+    CMD curl -fsS "http://127.0.0.1/up" >/dev/null || exit 1
+
+CMD ["apache2-foreground"]
