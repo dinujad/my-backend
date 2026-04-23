@@ -30,7 +30,8 @@ RUN set -eux; \
         /etc/apache2/conf-available/docker-php.conf; \
     apache2ctl configtest
 
-RUN chown -R www-data:www-data /var/www/html \
+RUN mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions storage/logs bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Create the public/storage symlink so uploaded files (products, gallery, etc.)
