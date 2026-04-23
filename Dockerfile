@@ -33,6 +33,10 @@ RUN set -eux; \
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Create the public/storage symlink so uploaded files (products, gallery, etc.)
+# are accessible via /storage/... URLs (storage/app/public → public/storage).
+RUN php artisan storage:link --force
+
 EXPOSE 80
 
 # Coolify probes the first exposed port; give Laravel time to boot on cold start.

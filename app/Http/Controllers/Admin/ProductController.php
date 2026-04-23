@@ -137,6 +137,13 @@ class ProductController extends Controller
             'price_tiers' => $v->priceTiers->toArray(),
         ])->toArray());
 
+        // Pre-encode gallery images so @json() in Blade never sees nested single-quoted expressions.
+        $existingGalleryImagesForJs = $product->images
+            ->whereNull('product_variation_id')
+            ->values()
+            ->map(fn ($img) => ['id' => $img->id, 'file_path' => $img->file_path])
+            ->toArray();
+
         return view('admin.products.edit', compact(
             'product',
             'categories',
@@ -146,6 +153,7 @@ class ProductController extends Controller
             'pageSettingsForJs',
             'customizationSettingsForJs',
             'variationsForJs',
+            'existingGalleryImagesForJs',
         ));
     }
 

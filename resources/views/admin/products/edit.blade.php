@@ -804,10 +804,10 @@
                 <div>
                     <h2 class="font-semibold text-gray-800 pb-2 border-b border-gray-100">Product Gallery</h2>
                     
-                    <div class="grid grid-cols-3 gap-2 mb-4 mt-2" x-data='{ existingImages: @json($product->images->whereNull('product_variation_id')->values()) }'>
+                    <div class="grid grid-cols-3 gap-2 mb-4 mt-2" x-data='{ existingImages: @json($existingGalleryImagesForJs) }'>
                         <template x-for="(img, i) in existingImages" :key="img.id || i">
                             <div class="relative group aspect-square rounded border border-gray-200 overflow-hidden bg-gray-50">
-                                <img :src="'/' + img.file_path" class="w-full h-full object-cover">
+                                <img :src="img.file_path && img.file_path.startsWith('http') ? img.file_path : '/' + (img.file_path || '').replace(/^\/+/, '')" class="w-full h-full object-cover">
                                 <input type="hidden" name="existing_images[]" :value="img.id">
                                 <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer text-white" @click="existingImages.splice(i, 1)">
                                     <i class="bi bi-trash text-xl text-red-400"></i>
