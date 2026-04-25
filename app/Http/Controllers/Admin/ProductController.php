@@ -50,6 +50,7 @@ class ProductController extends Controller
             'seo_title' => $request->input('seo_title'),
             'seo_description' => $request->input('seo_description'),
             'focus_keyword' => $request->input('focus_keyword'),
+            'main_image_alt' => $request->input('main_image_alt'),
         ];
         
         if ($request->filled('attributes_config')) {
@@ -141,7 +142,7 @@ class ProductController extends Controller
         $existingGalleryImagesForJs = $product->images
             ->whereNull('product_variation_id')
             ->values()
-            ->map(fn ($img) => ['id' => $img->id, 'file_path' => $img->file_path])
+            ->map(fn ($img) => ['id' => $img->id, 'file_path' => $img->file_path, 'alt_text' => $img->alt_text])
             ->toArray();
 
         return view('admin.products.edit', compact(
@@ -175,6 +176,7 @@ class ProductController extends Controller
             'seo_title' => $request->input('seo_title'),
             'seo_description' => $request->input('seo_description'),
             'focus_keyword' => $request->input('focus_keyword'),
+            'main_image_alt' => $request->input('main_image_alt'),
         ];
 
         if ($request->filled('attributes_config')) {
@@ -238,6 +240,7 @@ class ProductController extends Controller
     {
         // 1. Keep existing images (handle deletions)
         $existingImageIds = $request->input('existing_images', []);
+        $existingImageAlts = $request->input('existing_image_alts', []);
         
         $imagesToDelete = $product->images()
                                   ->whereNull('product_variation_id')
@@ -249,13 +252,30 @@ class ProductController extends Controller
             $img->delete();
         }
 
+        if (!empty($existingImageIds)) {
+            $keptImages = $product->images()
+                ->whereNull('product_variation_id')
+                ->whereIn('id', $existingImageIds)
+                ->get();
+
+            foreach ($keptImages as $img) {
+                $img->update([
+                    'alt_text' => isset($existingImageAlts[$img->id])
+                        ? trim((string) $existingImageAlts[$img->id]) ?: null
+                        : null,
+                ]);
+            }
+        }
+
         // 2. Add new images
         if ($request->hasFile('product_images')) {
-            foreach ($request->file('product_images') as $file) {
+            $newImageAlts = $request->input('product_image_alts', []);
+            foreach ($request->file('product_images') as $index => $file) {
                 $path = $file->store('products', 'public');
                 $product->images()->create([
                     'file_path' => 'storage/' . $path,
                     'type' => 'gallery',
+                    'alt_text' => isset($newImageAlts[$index]) ? (trim((string) $newImageAlts[$index]) ?: null) : null,
                     'sort_order' => 0,
                 ]);
             }

@@ -76,9 +76,14 @@ class UpdateProductRequest extends FormRequest
             
             // Local Images (max in kilobytes; 10240 = 10 MB, within uploads.ini post limits)
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'main_image_alt' => 'nullable|string|max:255',
             'existing_images' => 'nullable|array',
+            'existing_image_alts' => 'nullable|array',
+            'existing_image_alts.*' => 'nullable|string|max:255',
             'product_images' => 'nullable|array',
             'product_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:10240',
+            'product_image_alts' => 'nullable|array',
+            'product_image_alts.*' => 'nullable|string|max:255',
             
             // Tier Pricing
             'enable_tier_pricing' => 'boolean',

@@ -92,10 +92,14 @@ class ProductApiController extends Controller
         };
         
         $mainImage = '';
+        $mainImageAlt = null;
         if ($p->image) {
             $mainImage = $formatImagePath($p->image);
+            $mainImageAlt = $p->seo_data['main_image_alt'] ?? null;
         } elseif ($p->images && $p->images->whereNull('product_variation_id')->count() > 0) {
-            $mainImage = $formatImagePath($p->images->whereNull('product_variation_id')->sortBy('sort_order')->first()->file_path);
+            $firstGalleryImage = $p->images->whereNull('product_variation_id')->sortBy('sort_order')->first();
+            $mainImage = $formatImagePath($firstGalleryImage->file_path);
+            $mainImageAlt = $firstGalleryImage->alt_text;
         }
 
         $avgRating = $p->reviews_avg_rating ?? null;
@@ -123,10 +127,21 @@ class ProductApiController extends Controller
             'oldPrice'     => $compare ? $fmt($compare) : null,
             'compare_price'=> $compare,
             'image'        => $mainImage,
+            'image_alt'    => $mainImageAlt,
             'gallery'      => $p->images
                 ? $p->images->whereNull('product_variation_id')->sortBy('sort_order')
                     ->filter(fn ($img) => filled($img->file_path))
                     ->map(fn ($img) => $formatImagePath($img->file_path))
+                    ->values()
+                    ->toArray()
+                : [],
+            'gallery_items' => $p->images
+                ? $p->images->whereNull('product_variation_id')->sortBy('sort_order')
+                    ->filter(fn ($img) => filled($img->file_path))
+                    ->map(fn ($img) => [
+                        'src' => $formatImagePath($img->file_path),
+                        'alt' => $img->alt_text,
+                    ])
                     ->values()
                     ->toArray()
                 : [],
@@ -143,6 +158,7 @@ class ProductApiController extends Controller
                 'sale_price' => $v->sale_price ? (float) $v->sale_price : null,
                 'stock_quantity' => $v->stock_quantity,
                 'image' => $v->images && $v->images->count() > 0 ? $formatImagePath($v->images->sortBy('sort_order')->first()->file_path) : null,
+                'image_alt' => $v->images && $v->images->count() > 0 ? $v->images->sortBy('sort_order')->first()->alt_text : null,
                 'attributes' => $v->attributes ?? [],
                 'priceTiers' => $v->priceTiers ? $v->priceTiers->map(fn($t) => [
                     'min_qty' => $t->min_qty,

@@ -757,6 +757,11 @@
                         <div x-show="mainImageError" class="mt-2 text-xs text-red-600">
                             <span x-text="mainImageError"></span>
                         </div>
+                        <div class="mt-3">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Main Image ALT Text</label>
+                            <input type="text" name="main_image_alt" value="{{ old('main_image_alt') }}" placeholder="Main product image ALT text (SEO)"
+                                class="w-full border border-gray-200 rounded px-3 py-1.5 text-sm focus:border-brand-red outline-none">
+                        </div>
                     </div>
                 </div>
 
@@ -779,17 +784,34 @@
                                     previews = [];
                                     return;
                                 }
-                                files.forEach(f => {
+                                files.forEach((f, idx) => {
                                     let r = new FileReader();
-                                    r.onload = e => previews.push(e.target.result);
+                                    r.onload = e => previews.push({
+                                        preview: e.target.result,
+                                        name: f.name,
+                                        alt: ''
+                                    });
                                     r.readAsDataURL(f);
                                 });
                             "
                             class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 mb-2 cursor-pointer mt-2">
                         
-                        <div class="grid grid-cols-3 gap-2 mt-2" x-show="previews.length > 0">
-                            <template x-for="p in previews">
-                                <img :src="p" class="aspect-square object-cover rounded border border-gray-200 shadow-sm w-full">
+                        <div class="space-y-3 mt-2" x-show="previews.length > 0">
+                            <template x-for="(p, idx) in previews" :key="idx">
+                                <div class="rounded border border-gray-200 p-2 bg-gray-50">
+                                    <div class="flex gap-3 items-start">
+                                        <img :src="p.preview" class="w-20 h-20 object-cover rounded border border-gray-200 shadow-sm shrink-0">
+                                        <div class="flex-1 min-w-0 space-y-1.5">
+                                            <div class="text-xs text-gray-500 truncate" x-text="p.name"></div>
+                                            <input type="text"
+                                                name="product_image_alts[]"
+                                                x-model="p.alt"
+                                                placeholder="Image ALT text (SEO)"
+                                                class="w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:border-brand-red outline-none">
+                                            <p class="text-[11px] text-gray-400">Keep it descriptive (eg: "Custom acrylic logo sign with LED backlight").</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </template>
                         </div>
                         <div x-show="previews.length === 0" class="text-xs text-gray-400 italic text-center mt-2">No gallery images uploaded yet.</div>

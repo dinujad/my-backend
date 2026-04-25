@@ -798,19 +798,36 @@
                         <div x-show="mainImageError" class="mt-2 text-xs text-red-600">
                             <span x-text="mainImageError"></span>
                         </div>
+                        <div class="mt-3">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Main Image ALT Text</label>
+                            <input type="text" name="main_image_alt" value="{{ old('main_image_alt', $product->seo_data['main_image_alt'] ?? '') }}" placeholder="Main product image ALT text (SEO)"
+                                class="w-full border border-gray-200 rounded px-3 py-1.5 text-sm focus:border-brand-red outline-none">
+                        </div>
                     </div>
                 </div>
 
                 <div>
                     <h2 class="font-semibold text-gray-800 pb-2 border-b border-gray-100">Product Gallery</h2>
                     
-                    <div class="grid grid-cols-3 gap-2 mb-4 mt-2" x-data='{ existingImages: @json($existingGalleryImagesForJs) }'>
+                    <div class="space-y-3 mb-4 mt-2" x-data='{ existingImages: @json($existingGalleryImagesForJs) }'>
                         <template x-for="(img, i) in existingImages" :key="img.id || i">
-                            <div class="relative group aspect-square rounded border border-gray-200 overflow-hidden bg-gray-50">
-                                <img :src="img.file_path && img.file_path.startsWith('http') ? img.file_path : '/' + (img.file_path || '').replace(/^\/+/, '')" class="w-full h-full object-cover">
-                                <input type="hidden" name="existing_images[]" :value="img.id">
-                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer text-white" @click="existingImages.splice(i, 1)">
-                                    <i class="bi bi-trash text-xl text-red-400"></i>
+                            <div class="rounded border border-gray-200 p-2 bg-gray-50">
+                                <div class="flex gap-3 items-start">
+                                    <div class="relative group w-20 h-20 shrink-0 rounded border border-gray-200 overflow-hidden bg-white">
+                                        <img :src="img.file_path && img.file_path.startsWith('http') ? img.file_path : '/' + (img.file_path || '').replace(/^\/+/, '')" class="w-full h-full object-cover">
+                                        <button type="button" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white" @click="existingImages.splice(i, 1)">
+                                            <i class="bi bi-trash text-xl text-red-400"></i>
+                                        </button>
+                                    </div>
+                                    <div class="flex-1 min-w-0 space-y-1.5">
+                                        <input type="hidden" name="existing_images[]" :value="img.id">
+                                        <input type="text"
+                                            :name="'existing_image_alts[' + img.id + ']'"
+                                            x-model="img.alt_text"
+                                            placeholder="Image ALT text (SEO)"
+                                            class="w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:border-brand-red outline-none">
+                                        <p class="text-[11px] text-gray-400">Describe what this image shows for SEO and accessibility.</p>
+                                    </div>
                                 </div>
                             </div>
                         </template>
@@ -834,17 +851,34 @@
                                     previews = [];
                                     return;
                                 }
-                                files.forEach(f => {
+                                files.forEach((f, idx) => {
                                     let r = new FileReader();
-                                    r.onload = e => previews.push(e.target.result);
+                                    r.onload = e => previews.push({
+                                        preview: e.target.result,
+                                        name: f.name,
+                                        alt: ''
+                                    });
                                     r.readAsDataURL(f);
                                 });
                             "
                             class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 mb-2 cursor-pointer mt-2">
                         
-                        <div class="grid grid-cols-3 gap-2" x-show="previews.length > 0">
-                            <template x-for="p in previews">
-                                <img :src="p" class="aspect-square object-cover rounded border border-gray-200 shadow-sm w-full opacity-70">
+                        <div class="space-y-3" x-show="previews.length > 0">
+                            <template x-for="(p, idx) in previews" :key="idx">
+                                <div class="rounded border border-gray-200 p-2 bg-gray-50">
+                                    <div class="flex gap-3 items-start">
+                                        <img :src="p.preview" class="w-20 h-20 object-cover rounded border border-gray-200 shadow-sm shrink-0 opacity-70">
+                                        <div class="flex-1 min-w-0 space-y-1.5">
+                                            <div class="text-xs text-gray-500 truncate" x-text="p.name"></div>
+                                            <input type="text"
+                                                name="product_image_alts[]"
+                                                x-model="p.alt"
+                                                placeholder="Image ALT text (SEO)"
+                                                class="w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:border-brand-red outline-none">
+                                            <p class="text-[11px] text-gray-400">Keep it descriptive (eg: "Outdoor PVC banner with full-color print").</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </template>
                         </div>
                         <div x-show="galleryError" class="mt-2 text-xs text-red-600">
