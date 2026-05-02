@@ -54,9 +54,18 @@
                         @endif
                     </td>
                     <td class="px-4 py-3 text-right">
-                        <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex items-center gap-1 text-brand-red hover:underline text-xs">
-                            <i class="bi bi-pencil"></i> Edit
-                        </a>
+                        <div class="inline-flex items-center gap-3">
+                            <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex items-center gap-1 text-brand-red hover:underline text-xs">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <form action="{{ route('admin.products.destroy', $product) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="inline-flex items-center gap-1 text-red-600 hover:underline text-xs">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             @empty
