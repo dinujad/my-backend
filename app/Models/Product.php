@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,7 +18,7 @@ class Product extends Model
     protected $fillable = [
         'product_type', 'status', 'visibility',
         'category_id', 'brand_id',
-        'name', 'slug', 'description', 'short_description', 'sku',
+        'name', 'slug', 'legacy_slugs', 'description', 'short_description', 'sku',
         'price', 'compare_price', 'cost_price', 'tax_class', 'tax_status',
         'discount_starts_at', 'discount_ends_at',
         'manage_stock', 'stock_quantity', 'low_stock_threshold', 'stock_status',
@@ -60,6 +62,7 @@ class Product extends Model
             'attributes_config' => 'array',
             'page_settings' => 'array',
             'customization_settings' => 'array',
+            'legacy_slugs' => 'array',
         ];
     }
 
@@ -101,6 +104,92 @@ class Product extends Model
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
+    }
+
+    /**
+     * Decode + trim a slug from the URL/API path (do not Str::slug — must match DB for legacy rows).
+     */
+    public static function normalizeSlugFromRequest(string $slug): string
+    {
+        $slug = trim(rawurldecode($slug));
+
+        return trim($slug, '/');
+    }
+
+    /**
+     * DB may still hold legacy values like "foo/" — try a few variants for lookups.
+     *
+     * @return list<string>
+     */
+    public static function slugLookupCandidates(string $normalized): array
+    {
+        $normalized = trim($normalized);
+        if ($normalized === '') {
+            return [];
+        }
+        $base = rtrim($normalized, '/');
+
+        return array_values(array_unique(array_filter([
+            $normalized,
+            $base,
+            $base . '/',
+        ])));
+    }
+
+    /**
+     * Single URL segment for /product/{slug}: no slashes, safe for Next + Laravel routing.
+     * Does not re-run Str::slug on a non-empty admin slug (avoids changing underscores / casing vs validation).
+     */
+    public static function slugForStorage(?string $slug, string $name): string
+    {
+        $base = ($slug !== null && trim((string) $slug) !== '') ? trim((string) $slug) : trim($name);
+        $base = rawurldecode($base);
+        $base = str_replace(['/', '\\', '?', '#'], '-', $base);
+        $base = trim(preg_replace('/\s+/u', '-', $base) ?? '', '-');
+        $base = trim(preg_replace('/-+/', '-', $base) ?? '', '-');
+        $base = trim($base, '-');
+
+        if ($base !== '') {
+            return $base;
+        }
+
+        $out = Str::slug($name);
+        if ($out === '') {
+            $out = 'product-' . substr(bin2hex(random_bytes(4)), 0, 8);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Resolve product by canonical slug or a previous slug kept for SEO (Google index).
+     *
+     * @param  Builder<Product>  $query  Base query (e.g. ->with(...)->active()).
+     */
+    public static function firstActiveMatchingSlugOrLegacy(Builder $query, string $rawSlug): ?Product
+    {
+        $normalized = self::normalizeSlugFromRequest($rawSlug);
+        $candidates = self::slugLookupCandidates($normalized);
+        if ($candidates === []) {
+            return null;
+        }
+
+        $bySlug = (clone $query)->whereIn('slug', $candidates)->first();
+        if ($bySlug) {
+            return $bySlug;
+        }
+
+        foreach ($candidates as $c) {
+            $byLegacy = (clone $query)
+                ->whereNotNull('legacy_slugs')
+                ->whereJsonContains('legacy_slugs', $c)
+                ->first();
+            if ($byLegacy) {
+                return $byLegacy;
+            }
+        }
+
+        return null;
     }
 
     public function customizationFields(): HasMany

@@ -30,16 +30,19 @@ class ProductApiController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $product = Product::with(['category', 'images', 'priceTiers', 'variations.images', 'variations.priceTiers', 'customizationFields'])
+        $base = Product::with(['category', 'images', 'priceTiers', 'variations.images', 'variations.priceTiers', 'customizationFields'])
             ->withCount([
                 'reviews as approved_reviews_count' => fn ($q) => $q->where('is_approved', true),
             ])
             ->withAvg([
                 'reviews' => fn ($q) => $q->where('is_approved', true),
             ], 'rating')
-            ->active()
-            ->where('slug', $slug)
-            ->firstOrFail();
+            ->active();
+
+        $product = Product::firstActiveMatchingSlugOrLegacy($base, $slug);
+        if (! $product) {
+            abort(404);
+        }
 
         return response()->json($this->format($product));
     }

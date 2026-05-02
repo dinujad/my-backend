@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -35,9 +34,12 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        
-        $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
-        
+
+        unset($data['legacy_slugs']);
+
+        $data['slug'] = Product::slugForStorage($data['slug'] ?? null, $data['name']);
+        $data['legacy_slugs'] = [];
+
         $booleans = [
             'manage_stock', 'allow_backorders', 'sold_individually', 'is_fragile',
             'enable_reviews', 'is_downloadable', 'is_virtual', 'is_active', 'is_featured'
@@ -162,8 +164,24 @@ class ProductController extends Controller
     {
         $data = $request->validated();
 
-        $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
-        
+        unset($data['legacy_slugs']);
+
+        $oldSlug = $product->slug;
+        $newSlug = Product::slugForStorage($data['slug'] ?? null, $data['name']);
+        $data['slug'] = $newSlug;
+
+        $legacy = $product->legacy_slugs;
+        $legacy = is_array($legacy) ? array_values(array_unique(array_filter($legacy))) : [];
+        if ($oldSlug !== $newSlug && $oldSlug !== '') {
+            if (! in_array($oldSlug, $legacy, true)) {
+                $legacy[] = $oldSlug;
+            }
+        }
+        $data['legacy_slugs'] = array_values(array_filter(
+            array_unique($legacy),
+            fn ($s): bool => is_string($s) && $s !== '' && $s !== $newSlug
+        ));
+
         $booleans = [
             'manage_stock', 'allow_backorders', 'sold_individually', 'is_fragile',
             'enable_reviews', 'is_downloadable', 'is_virtual', 'is_active', 'is_featured'

@@ -15,7 +15,10 @@ class ProductReviewApiController extends Controller
      */
     public function index(string $slug): JsonResponse
     {
-        $product = Product::active()->where('slug', $slug)->firstOrFail();
+        $product = Product::firstActiveMatchingSlugOrLegacy(Product::query()->active(), $slug);
+        if (! $product) {
+            abort(404);
+        }
 
         if (! $product->enable_reviews) {
             return response()->json([
@@ -56,7 +59,10 @@ class ProductReviewApiController extends Controller
      */
     public function store(Request $request, string $slug): JsonResponse
     {
-        $product = Product::active()->where('slug', $slug)->firstOrFail();
+        $product = Product::firstActiveMatchingSlugOrLegacy(Product::query()->active(), $slug);
+        if (! $product) {
+            abort(404);
+        }
 
         if (! $product->enable_reviews) {
             return response()->json(['message' => 'Reviews are disabled for this product.'], 403);
