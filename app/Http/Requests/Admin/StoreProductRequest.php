@@ -2,13 +2,26 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\NormalizesProductVariations;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductRequest extends FormRequest
 {
+    use NormalizesProductVariations;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $variations = $this->input('variations');
+        if (! is_array($variations)) {
+            return;
+        }
+
+        $this->merge(['variations' => $this->normalizeVariationsInput($variations)]);
     }
 
     public function rules(): array
@@ -102,7 +115,6 @@ class StoreProductRequest extends FormRequest
             'variations.*.image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'variations.*.enable_tier_pricing' => 'boolean',
             'variations.*.price_tiers' => 'nullable|array',
-            'variations.*.price_tiers.*.min_qty' => 'required_with:variations.*.price_tiers|integer|min:1',
             'variations.*.price_tiers.*.min_qty' => 'required_with:variations.*.price_tiers|integer|min:1',
             'variations.*.price_tiers.*.max_qty' => 'nullable|integer',
             'variations.*.price_tiers.*.unit_price' => 'required_with:variations.*.price_tiers|numeric|min:0',

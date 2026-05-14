@@ -63,7 +63,9 @@ class ProductAjaxController extends Controller
         $variations = array_map(function ($combo) {
             $skuSuffix = implode('-', array_values($combo));
             return [
-                'id' => 'new_' . Str::random(8), // Temporary ID for frontend tracking
+                // No DB id until save — fake strings fail UpdateProductRequest's exists rule.
+                'id' => null,
+                'temp_key' => (string) Str::ulid(),
                 'attributes' => $combo,
                 'sku' => strtoupper(Str::slug($skuSuffix)),
                 'price' => '',

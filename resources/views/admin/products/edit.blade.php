@@ -322,7 +322,7 @@
                                 </div>
 
                                 <div class="space-y-3 mt-4">
-                                    <template x-for="(variation, vIndex) in variations" :key="variation.id || vIndex">
+                                    <template x-for="(variation, vIndex) in variations" :key="variation.temp_key || variation.id || ('idx-'+vIndex)">
                                         <div class="border border-gray-200 rounded-lg bg-white overflow-hidden shadow-sm" x-data="{ expanded: false }">
                                             <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100 cursor-pointer" @click="expanded = !expanded">
                                                 <div class="flex items-center gap-4">
@@ -400,30 +400,32 @@
                                                         Enable Variation Tier Pricing
                                                     </label>
                                                     
-                                                    <div x-show="variation.enable_tier_pricing" class="space-y-3 mb-2">
-                                                        <template x-for="(tier, tIndex) in variation.price_tiers" :key="tIndex">
-                                                            <div class="flex items-end gap-2 bg-gray-50 p-2 rounded border border-gray-200">
-                                                                <div class="w-1/4">
-                                                                    <label class="block text-[10px] text-gray-500 uppercase font-bold mb-1">Min Qty</label>
-                                                                    <input type="number" :name="`variations[${vIndex}][price_tiers][${tIndex}][min_qty]`" x-model.number="tier.min_qty" required min="1" class="w-full border border-gray-200 rounded px-1.5 py-1 text-xs focus:border-brand-red outline-none">
+                                                    <template x-if="variation.enable_tier_pricing">
+                                                        <div class="space-y-3 mb-2">
+                                                            <template x-for="(tier, tIndex) in (variation.price_tiers || [])" :key="tIndex">
+                                                                <div class="flex items-end gap-2 bg-gray-50 p-2 rounded border border-gray-200">
+                                                                    <div class="w-1/4">
+                                                                        <label class="block text-[10px] text-gray-500 uppercase font-bold mb-1">Min Qty</label>
+                                                                        <input type="number" :name="`variations[${vIndex}][price_tiers][${tIndex}][min_qty]`" x-model.number="tier.min_qty" min="1" class="w-full border border-gray-200 rounded px-1.5 py-1 text-xs focus:border-brand-red outline-none">
+                                                                    </div>
+                                                                    <div class="w-1/4">
+                                                                        <label class="block text-[10px] text-gray-500 uppercase font-bold mb-1">Max Qty</label>
+                                                                        <input type="number" :name="`variations[${vIndex}][price_tiers][${tIndex}][max_qty]`" x-model.number="tier.max_qty" class="w-full border border-gray-200 rounded px-1.5 py-1 text-xs focus:border-brand-red outline-none">
+                                                                    </div>
+                                                                    <div class="w-1/4">
+                                                                        <label class="block text-[10px] text-gray-500 uppercase font-bold mb-1">Price</label>
+                                                                        <input type="number" :name="`variations[${vIndex}][price_tiers][${tIndex}][unit_price]`" x-model.number="tier.unit_price" step="0.01" class="w-full border border-gray-200 rounded px-1.5 py-1 text-xs focus:border-brand-red outline-none">
+                                                                    </div>
+                                                                    <div class="w-1/4 text-center pb-0.5">
+                                                                        <button type="button" @click="variation.price_tiers.splice(tIndex, 1)" class="text-red-400 hover:text-red-600 text-sm"><i class="bi bi-trash"></i></button>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="w-1/4">
-                                                                    <label class="block text-[10px] text-gray-500 uppercase font-bold mb-1">Max Qty</label>
-                                                                    <input type="number" :name="`variations[${vIndex}][price_tiers][${tIndex}][max_qty]`" x-model.number="tier.max_qty" class="w-full border border-gray-200 rounded px-1.5 py-1 text-xs focus:border-brand-red outline-none">
-                                                                </div>
-                                                                <div class="w-1/4">
-                                                                    <label class="block text-[10px] text-gray-500 uppercase font-bold mb-1">Price</label>
-                                                                    <input type="number" :name="`variations[${vIndex}][price_tiers][${tIndex}][unit_price]`" x-model.number="tier.unit_price" required step="0.01" class="w-full border border-gray-200 rounded px-1.5 py-1 text-xs focus:border-brand-red outline-none">
-                                                                </div>
-                                                                <div class="w-1/4 text-center pb-0.5">
-                                                                    <button type="button" @click="variation.price_tiers.splice(tIndex, 1)" class="text-red-400 hover:text-red-600 text-sm"><i class="bi bi-trash"></i></button>
-                                                                </div>
-                                                            </div>
-                                                        </template>
-                                                        <button type="button" @click="if(!variation.price_tiers) variation.price_tiers = []; variation.price_tiers.push({min_qty:'', max_qty:'', unit_price:''})" class="text-xs font-semibold text-brand-red">
-                                                            + Add Variation Tier
-                                                        </button>
-                                                    </div>
+                                                            </template>
+                                                            <button type="button" @click="if(!variation.price_tiers) variation.price_tiers = []; variation.price_tiers.push({min_qty:'', max_qty:'', unit_price:''})" class="text-xs font-semibold text-brand-red">
+                                                                + Add Variation Tier
+                                                            </button>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </div>
                                         </div>

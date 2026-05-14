@@ -348,17 +348,25 @@ class ProductController extends Controller
         $existingIds = [];
 
         foreach ($variationsData as $varData) {
-            $variation = $product->variations()->updateOrCreate(
-                ['id' => $varData['id'] ?? null],
-                [
-                    'attributes' => $varData['attributes'] ?? null,
-                    'sku' => $varData['sku'] ?? null,
-                    'price' => $varData['price'] ?? 0,
-                    'sale_price' => $varData['sale_price'] ?? null,
-                    'stock_quantity' => $varData['stock_quantity'] ?? null,
-                    'stock_status' => $varData['stock_status'] ?? 'instock',
-                ]
-            );
+            $rawId = $varData['id'] ?? null;
+            $variationId = is_numeric($rawId) ? (int) $rawId : null;
+
+            $payload = [
+                'attributes' => $varData['attributes'] ?? null,
+                'sku' => $varData['sku'] ?? null,
+                'price' => $varData['price'] ?? 0,
+                'sale_price' => $varData['sale_price'] ?? null,
+                'stock_quantity' => $varData['stock_quantity'] ?? null,
+                'stock_status' => $varData['stock_status'] ?? 'instock',
+            ];
+
+            if ($variationId && $product->variations()->whereKey($variationId)->exists()) {
+                $variation = $product->variations()->find($variationId);
+                $variation->update($payload);
+            } else {
+                $variation = $product->variations()->create($payload);
+            }
+
             $existingIds[] = $variation->id;
 
             $varTierEnabled = filter_var($varData['enable_tier_pricing'] ?? false, FILTER_VALIDATE_BOOLEAN);
