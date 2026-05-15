@@ -162,6 +162,7 @@ class ProductApiController extends Controller
             'material'     => $p->material,
             'seo_title'    => $p->seo_title,
             'seo_description' => $p->seo_description,
+            'attributes_config' => $p->attributes_config,
             'page_settings' => $p->page_settings,
             'customization_settings' => $p->customization_settings,
             'customization_fields' => $p->relationLoaded('customizationFields') ? $p->customizationFields->map(fn($f) => [
