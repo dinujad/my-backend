@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Support\ProductMediaPath;
 use Illuminate\Http\JsonResponse;
 
 class ProductApiController extends Controller
@@ -72,27 +73,8 @@ class ProductApiController extends Controller
         // Format LKR price like "Rs. 4,475.00"
         $fmt = fn(float $v) => 'Rs. ' . number_format($v, 2);
 
-        // Absolute URLs via asset() so the browser loads from the API host (works even when
-        // Next.js rewrites for /storage are wrong). Requires correct APP_URL in .env and
-        // `php artisan storage:link` so public/storage → storage/app/public for uploads.
-        $formatImagePath = function (string $path) {
-            $path = str_replace('\\', '/', trim($path));
-            if ($path === '') {
-                return '';
-            }
-            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-                return $path;
-            }
-            $trim = ltrim($path, '/');
-            if (str_starts_with($trim, 'images/')) {
-                return '/' . $trim;
-            }
-            if (str_starts_with($trim, 'storage/')) {
-                return asset($trim);
-            }
-
-            return asset('storage/' . $trim);
-        };
+        // Same-origin paths (/storage/…) — works with Next.js rewrites; legacy localhost URLs normalized.
+        $formatImagePath = fn (string $path) => ProductMediaPath::normalize($path);
         
         $mainImage = '';
         $mainImageAlt = null;
