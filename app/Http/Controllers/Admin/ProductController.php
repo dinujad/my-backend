@@ -17,7 +17,10 @@ class ProductController extends Controller
 {
     public function index(): View
     {
-        $products = Product::with(['category', 'brand'])->orderBy('sort_order')->orderBy('name')->paginate(15);
+        $products = Product::with(['category', 'brand', 'variations'])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate(15);
 
         return view('admin.products.index', compact('products'));
     }

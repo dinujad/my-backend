@@ -192,6 +192,78 @@ class Product extends Model
         return null;
     }
 
+    /**
+     * Admin products table: single price or min–max from active variations (uses sale_price when set).
+     */
+    public function adminListPrice(): string
+    {
+        $fmt = static fn (float $v): string => 'Rs. ' . number_format($v, 2);
+
+        $vars = $this->relationLoaded('variations')
+            ? $this->variations
+            : $this->variations()->get();
+
+        $active = $vars->where('is_active', true);
+
+        $effective = $active->map(function (ProductVariation $v) {
+            $price = (float) $v->price;
+            $sale = $v->sale_price !== null && $v->sale_price !== ''
+                ? (float) $v->sale_price
+                : null;
+            $unit = ($sale !== null && $sale > 0) ? $sale : $price;
+
+            return $unit > 0 ? $unit : null;
+        })->filter()->values();
+
+        if ($effective->isNotEmpty()) {
+            $min = (float) $effective->min();
+            $max = (float) $effective->max();
+            if (abs($min - $max) < 0.005) {
+                return $fmt($min);
+            }
+
+            return $fmt($min) . ' – ' . $fmt($max);
+        }
+
+        $base = (float) $this->price;
+        if ($base > 0) {
+            return $fmt($base);
+        }
+
+        return '–';
+    }
+
+    /**
+     * Admin products table: parent SKU or first variation SKU + count when multiple.
+     */
+    public function adminListSku(): string
+    {
+        $sku = trim((string) ($this->sku ?? ''));
+        if ($sku !== '') {
+            return $sku;
+        }
+
+        $vars = $this->relationLoaded('variations')
+            ? $this->variations
+            : $this->variations()->get();
+
+        $skus = $vars->where('is_active', true)
+            ->pluck('sku')
+            ->map(fn ($s) => trim((string) $s))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($skus->isEmpty()) {
+            return '–';
+        }
+        if ($skus->count() === 1) {
+            return $skus->first();
+        }
+
+        return $skus->first() . ' +' . ($skus->count() - 1);
+    }
+
     public function customizationFields(): HasMany
     {
         return $this->hasMany(ProductCustomizationField::class)->orderBy('sort_order');

@@ -43,8 +43,8 @@
                         </div>
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $product->category?->name ?? '–' }}</td>
-                    <td class="px-4 py-3 font-mono text-gray-500 text-xs">{{ $product->sku ?? '–' }}</td>
-                    <td class="px-4 py-3 text-right font-medium text-gray-900">Rs. {{ number_format($product->price, 2) }}</td>
+                    <td class="px-4 py-3 font-mono text-gray-500 text-xs">{{ $product->adminListSku() }}</td>
+                    <td class="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">{{ $product->adminListPrice() }}</td>
                     <td class="px-4 py-3 text-center">
                         <span class="px-2 py-0.5 rounded text-xs font-medium {{ $product->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
                             {{ $product->is_active ? 'Active' : 'Inactive' }}
