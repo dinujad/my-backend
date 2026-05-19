@@ -115,6 +115,9 @@
                         <button type="button" @click="tab = 'customizations'" :class="tab === 'customizations' ? 'bg-white border-l-2 border-brand-red text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-2 border-transparent'" class="px-4 py-3 text-sm text-left transition">
                             <i class="bi bi-magic me-2 opacity-70"></i> Customizations
                         </button>
+                        <button type="button" @click="tab = 'additional_services'" :class="tab === 'additional_services' ? 'bg-white border-l-2 border-brand-red text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-2 border-transparent'" class="px-4 py-3 text-sm text-left transition">
+                            <i class="bi bi-plus-circle me-2 opacity-70"></i> Additional Services
+                        </button>
                         <button type="button" @click="tab = 'advanced'" :class="tab === 'advanced' ? 'bg-white border-l-2 border-brand-red text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-2 border-transparent'" class="px-4 py-3 text-sm text-left transition">
                             <i class="bi bi-gear me-2 opacity-70"></i> Advanced
                         </button>
@@ -614,6 +617,11 @@
                             </div>
                         </div>
 
+                        <!-- ADDITIONAL SERVICES TAB -->
+                        <div x-show="tab === 'additional_services'" style="display: none;" x-transition.opacity>
+                            @include('admin.products.partials.additional-services-tab')
+                        </div>
+
                         <!-- ADVANCED TAB -->
                         <div x-show="tab === 'advanced'" style="display: none;" x-transition.opacity>
                             <div class="space-y-4 max-w-lg">
@@ -926,6 +934,7 @@
             // Customization
             custSettings: { enabled: false, title: 'Customize this product', flat_fee: 0, is_required: false, use_popup: false, popup_button_label: '' },
             custFields: [],
+            additionalServices: [],
             
             // Attributes & Variations
             attributes: [],

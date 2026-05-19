@@ -83,6 +83,7 @@ class ProductController extends Controller
         $this->syncPriceTiers($product, null, $request->boolean('enable_tier_pricing'), $request->input('price_tiers', []));
         $this->syncVariations($product, $request->input('variations', []));
         $this->syncCustomizationFields($product, $request->input('customization_fields', []));
+        $this->syncAdditionalServices($product, $request->input('additional_services', []));
 
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
@@ -93,7 +94,7 @@ class ProductController extends Controller
         $brands = Brand::orderBy('name')->get();
         $tags = Tag::orderBy('name')->get();
 
-        $product->load(['tags', 'variations.attributeValues', 'images', 'priceTiers', 'variations.images', 'variations.priceTiers', 'customizationFields']);
+        $product->load(['tags', 'variations.attributeValues', 'images', 'priceTiers', 'variations.images', 'variations.priceTiers', 'customizationFields', 'additionalServices']);
 
         $customizationFieldsForJs = $product->customizationFields
             ->map(function ($field) {
@@ -150,6 +151,17 @@ class ProductController extends Controller
             ->map(fn ($img) => ['id' => $img->id, 'file_path' => $img->file_path, 'alt_text' => $img->alt_text])
             ->toArray();
 
+        $additionalServicesForJs = $product->additionalServices
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'description' => $s->description ?? '',
+                'price' => (float) $s->price,
+                'is_active' => (bool) $s->is_active,
+            ])
+            ->values()
+            ->all();
+
         return view('admin.products.edit', compact(
             'product',
             'categories',
@@ -160,6 +172,7 @@ class ProductController extends Controller
             'customizationSettingsForJs',
             'variationsForJs',
             'existingGalleryImagesForJs',
+            'additionalServicesForJs',
         ));
     }
 
@@ -239,6 +252,7 @@ class ProductController extends Controller
         $this->syncPriceTiers($product, null, $request->boolean('enable_tier_pricing'), $request->input('price_tiers', []));
         $this->syncVariations($product, $request->input('variations', []));
         $this->syncCustomizationFields($product, $request->input('customization_fields', []));
+        $this->syncAdditionalServices($product, $request->input('additional_services', []));
 
         // Sync allowed payment methods
         $product->paymentMethods()->sync($request->input('payment_method_ids', []));
@@ -409,6 +423,24 @@ class ProductController extends Controller
                 'is_required' => filter_var($fieldData['is_required'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'options' => !empty($fieldData['options']) ? array_map('trim', explode(',', $fieldData['options'])) : null,
                 'accepted_extensions' => $fieldData['accepted_extensions'] ?? null,
+                'sort_order' => $index,
+            ]);
+        }
+    }
+
+    private function syncAdditionalServices(Product $product, array $services): void
+    {
+        $product->additionalServices()->delete();
+        foreach ($services as $index => $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+            $product->additionalServices()->create([
+                'name' => $name,
+                'description' => isset($row['description']) ? trim((string) $row['description']) : null,
+                'price' => max(0, (float) ($row['price'] ?? 0)),
+                'is_active' => filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'sort_order' => $index,
             ]);
         }

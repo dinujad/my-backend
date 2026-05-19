@@ -128,8 +128,9 @@ class CheckoutService
                 }
 
                 $customizationFee = floatval($itemData['customization_fee'] ?? 0);
+                $additionalServicesFee = floatval($itemData['additional_services_fee'] ?? 0);
                 $qty = intval($itemData['quantity'] ?? 1);
-                $totalItemPrice = ($unitPrice + $customizationFee) * $qty;
+                $totalItemPrice = ($unitPrice + $customizationFee + $additionalServicesFee) * $qty;
                 $subtotal += $totalItemPrice;
 
                 $customizations = is_array($itemData['customizations'] ?? null)
@@ -146,6 +147,10 @@ class CheckoutService
 
                 $lineName = $itemData['product_name'] ?? $product->name;
 
+                $additionalServices = is_array($itemData['additional_services'] ?? null)
+                    ? $itemData['additional_services']
+                    : null;
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
@@ -154,8 +159,10 @@ class CheckoutService
                     'quantity' => $qty,
                     'unit_price' => $unitPrice,
                     'customization_fee' => $customizationFee,
+                    'additional_services_fee' => $additionalServicesFee,
                     'total_price' => $totalItemPrice,
                     'customizations' => ! empty($customizations) ? $customizations : null,
+                    'additional_services' => $additionalServices,
                 ]);
             }
 

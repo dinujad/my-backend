@@ -15,12 +15,12 @@ class ProductApiController extends Controller
      */
     public function index(): JsonResponse
     {
-        $products = Product::with(['category', 'images', 'priceTiers'])
+        $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices'])
             ->active()
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
-            ->map(fn($p) => $this->format($p));
+            ->map(fn ($p) => $this->format($p));
 
         return response()->json($products);
     }
@@ -31,7 +31,7 @@ class ProductApiController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $base = Product::with(['category', 'images', 'priceTiers', 'variations.images', 'variations.priceTiers', 'customizationFields'])
+        $base = Product::with(['category', 'images', 'priceTiers', 'variations.images', 'variations.priceTiers', 'customizationFields', 'additionalServices'])
             ->withCount([
                 'reviews as approved_reviews_count' => fn ($q) => $q->where('is_approved', true),
             ])
@@ -54,7 +54,7 @@ class ProductApiController extends Controller
      */
     public function byCategory(string $categorySlug): JsonResponse
     {
-        $products = Product::with(['category', 'images', 'priceTiers'])
+        $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices'])
             ->active()
             ->whereHas('category', fn($q) => $q->where('slug', $categorySlug))
             ->orderBy('sort_order')
@@ -173,6 +173,18 @@ class ProductApiController extends Controller
                 'options' => is_array($f->options) ? $f->options : (!empty($f->options) ? array_map('trim', explode(',', $f->options)) : null),
                 'accepted_extensions' => $f->accepted_extensions
             ])->values()->toArray() : [],
+            'additional_services' => $p->relationLoaded('additionalServices')
+                ? $p->additionalServices
+                    ->where('is_active', true)
+                    ->map(fn ($s) => [
+                        'id' => $s->id,
+                        'name' => $s->name,
+                        'description' => $s->description,
+                        'price' => (float) $s->price,
+                    ])
+                    ->values()
+                    ->toArray()
+                : [],
         ];
     }
 }

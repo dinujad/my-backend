@@ -269,6 +269,11 @@ class Product extends Model
         return $this->hasMany(ProductCustomizationField::class)->orderBy('sort_order');
     }
 
+    public function additionalServices(): HasMany
+    {
+        return $this->hasMany(ProductAdditionalService::class)->orderBy('sort_order');
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(ProductReview::class);
