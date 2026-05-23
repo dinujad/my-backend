@@ -52,6 +52,10 @@
                     <i class="bi bi-images text-lg w-6 text-center"></i>
                     <span>Media</span>
                 </a>
+                <a href="{{ route('admin.hero-slides.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.hero-slides.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
+                    <i class="bi bi-sliders text-lg w-6 text-center"></i>
+                    <span>Home Slider</span>
+                </a>
                 <a href="{{ route('admin.coupons.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.coupons.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-tag text-lg w-6 text-center"></i>
                     <span>Coupons</span>

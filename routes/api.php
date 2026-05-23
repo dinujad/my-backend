@@ -19,6 +19,8 @@ $publicRoutes = function () {
     Route::post('/products/{slug}/reviews',            [ProductReviewApiController::class, 'store']);
     Route::get('/products/{slug}',                     [ProductApiController::class, 'show']);
 
+    Route::get('/home-hero-slides', [\App\Http\Controllers\Api\HomeHeroSlideApiController::class, 'index']);
+
     Route::get('/categories',        [CategoryApiController::class, 'index']);
     Route::get('/categories/{slug}', [CategoryApiController::class, 'show']);
 

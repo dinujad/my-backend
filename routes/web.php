@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\HomeHeroSlideController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
@@ -67,6 +68,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Coupons
     Route::resource('coupons', CouponController::class)->except(['show']);
+
+    // Home hero slider
+    Route::resource('hero-slides', HomeHeroSlideController::class)->except(['show']);
 
     // SEO Settings
     Route::get('seo', [SeoController::class, 'index'])->name('seo.index');
