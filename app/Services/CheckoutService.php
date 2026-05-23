@@ -129,8 +129,24 @@ class CheckoutService
 
                 $customizationFee = floatval($itemData['customization_fee'] ?? 0);
                 $additionalServicesFee = floatval($itemData['additional_services_fee'] ?? 0);
+                $perItemServices = 0.0;
+                $perOrderServices = 0.0;
+                $servicesList = is_array($itemData['additional_services'] ?? null)
+                    ? $itemData['additional_services']
+                    : [];
+                foreach ($servicesList as $svc) {
+                    $p = (float) ($svc['price'] ?? 0);
+                    if (($svc['pricing_type'] ?? 'per_item') === 'per_order') {
+                        $perOrderServices += $p;
+                    } else {
+                        $perItemServices += $p;
+                    }
+                }
+                if (empty($servicesList)) {
+                    $perItemServices = $additionalServicesFee;
+                }
                 $qty = intval($itemData['quantity'] ?? 1);
-                $totalItemPrice = ($unitPrice + $customizationFee + $additionalServicesFee) * $qty;
+                $totalItemPrice = ($unitPrice + $customizationFee + $perItemServices) * $qty + $perOrderServices;
                 $subtotal += $totalItemPrice;
 
                 $customizations = is_array($itemData['customizations'] ?? null)
@@ -147,9 +163,8 @@ class CheckoutService
 
                 $lineName = $itemData['product_name'] ?? $product->name;
 
-                $additionalServices = is_array($itemData['additional_services'] ?? null)
-                    ? $itemData['additional_services']
-                    : null;
+                $additionalServices = ! empty($servicesList) ? $servicesList : null;
+                $additionalServicesFeeTotal = $perItemServices * $qty + $perOrderServices;
 
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -159,7 +174,7 @@ class CheckoutService
                     'quantity' => $qty,
                     'unit_price' => $unitPrice,
                     'customization_fee' => $customizationFee,
-                    'additional_services_fee' => $additionalServicesFee,
+                    'additional_services_fee' => $additionalServicesFeeTotal,
                     'total_price' => $totalItemPrice,
                     'customizations' => ! empty($customizations) ? $customizations : null,
                     'additional_services' => $additionalServices,

@@ -181,6 +181,7 @@ class ProductApiController extends Controller
                         'name' => $s->name,
                         'description' => $s->description,
                         'price' => (float) $s->price,
+                        'pricing_type' => $s->pricing_type === 'per_order' ? 'per_order' : 'per_item',
                     ])
                     ->values()
                     ->toArray()

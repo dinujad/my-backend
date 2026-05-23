@@ -12,6 +12,7 @@ class ProductAdditionalService extends Model
         'name',
         'description',
         'price',
+        'pricing_type',
         'is_active',
         'sort_order',
     ];

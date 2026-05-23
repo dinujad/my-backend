@@ -157,6 +157,7 @@ class ProductController extends Controller
                 'name' => $s->name,
                 'description' => $s->description ?? '',
                 'price' => (float) $s->price,
+                'pricing_type' => $s->pricing_type === 'per_order' ? 'per_order' : 'per_item',
                 'is_active' => (bool) $s->is_active,
             ])
             ->values()
@@ -440,6 +441,9 @@ class ProductController extends Controller
                 'name' => $name,
                 'description' => isset($row['description']) ? trim((string) $row['description']) : null,
                 'price' => max(0, (float) ($row['price'] ?? 0)),
+                'pricing_type' => in_array($row['pricing_type'] ?? '', ['per_order', 'per_item'], true)
+                    ? $row['pricing_type']
+                    : 'per_item',
                 'is_active' => filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'sort_order' => $index,
             ]);
