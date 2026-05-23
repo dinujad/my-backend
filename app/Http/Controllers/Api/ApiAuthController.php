@@ -62,12 +62,15 @@ class ApiAuthController extends Controller
             'phone' => $request->phone,
         ]);
 
-        try {
-            app(\App\Services\WhatsAppService::class)->sendWelcomeMessage($request->phone, $user->name);
-            app(\App\Services\EmailService::class)->sendWelcomeEmail($user);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to send welcome message: " . $e->getMessage());
-        }
+        // Respond immediately; send welcome notifications after HTTP response (faster signup UX).
+        dispatch(function () use ($request, $user) {
+            try {
+                app(\App\Services\WhatsAppService::class)->sendWelcomeMessage($request->phone, $user->name);
+                app(\App\Services\EmailService::class)->sendWelcomeEmail($user);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send welcome message: '.$e->getMessage());
+            }
+        })->afterResponse();
 
         $token = $user->createToken('live-chat-auth-token')->plainTextToken;
 

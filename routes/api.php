@@ -70,6 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/orders', [\App\Http\Controllers\Api\CustomerDashboardController::class, 'orders']);
     Route::get('/dashboard/orders/{id}', [\App\Http\Controllers\Api\CustomerDashboardController::class, 'orderDetails']);
     Route::get('/dashboard/invoices', [\App\Http\Controllers\Api\CustomerDashboardController::class, 'invoices']);
+    Route::get('/dashboard/quotes', [\App\Http\Controllers\Api\CustomerDashboardController::class, 'quotes']);
+    Route::get('/dashboard/quotes/{id}', [\App\Http\Controllers\Api\CustomerDashboardController::class, 'quoteDetails']);
 });
 
 /*
