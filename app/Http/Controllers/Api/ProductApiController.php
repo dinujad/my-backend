@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Support\ProductMediaPath;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ProductApiController extends Controller
 {
@@ -63,6 +64,59 @@ class ProductApiController extends Controller
             ->map(fn($p) => $this->format($p));
 
         return response()->json($products);
+    }
+
+    /**
+     * GET /api/products/search?q=...&category=slug|all
+     * Live suggestions for the storefront header search.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->input('q', ''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $category = trim((string) $request->input('category', ''));
+        $fmt = fn (float $v) => 'Rs. '.number_format($v, 2);
+
+        $query = Product::query()
+            ->active()
+            ->with('category')
+            ->where(function ($builder) use ($q) {
+                $builder->where('name', 'like', "%{$q}%")
+                    ->orWhere('sku', 'like', "%{$q}%")
+                    ->orWhere('short_description', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%");
+            });
+
+        if ($category !== '' && $category !== 'all') {
+            $query->whereHas('category', function ($builder) use ($category) {
+                $builder->where('slug', $category)->orWhere('name', $category);
+            });
+        }
+
+        $results = $query
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->limit(8)
+            ->get()
+            ->map(function (Product $p) use ($fmt) {
+                $price = (float) $p->price;
+                $image = $p->image ? ProductMediaPath::normalize($p->image) : '';
+
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'slug' => $p->slug,
+                    'sku' => $p->sku ?? 'PW-'.str_pad((string) $p->id, 4, '0', STR_PAD_LEFT),
+                    'image' => $image,
+                    'price' => $fmt($price),
+                    'category' => $p->category?->name ?? '',
+                ];
+            });
+
+        return response()->json($results);
     }
 
     private function format(Product $p): array
