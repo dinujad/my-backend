@@ -20,6 +20,7 @@ $publicRoutes = function () {
     Route::get('/products/{slug}',                     [ProductApiController::class, 'show']);
 
     Route::get('/home-hero-slides', [\App\Http\Controllers\Api\HomeHeroSlideApiController::class, 'index']);
+    Route::get('/home-promo-banners', [\App\Http\Controllers\Api\HomePromoBannerApiController::class, 'index']);
 
     Route::get('/categories',        [CategoryApiController::class, 'index']);
     Route::get('/categories/{slug}', [CategoryApiController::class, 'show']);

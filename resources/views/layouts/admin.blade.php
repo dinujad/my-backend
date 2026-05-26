@@ -56,6 +56,10 @@
                     <i class="bi bi-sliders text-lg w-6 text-center"></i>
                     <span>Home Slider</span>
                 </a>
+                <a href="{{ route('admin.promo-banners.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.promo-banners.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
+                    <i class="bi bi-grid-3x3-gap text-lg w-6 text-center"></i>
+                    <span>Promo Banners</span>
+                </a>
                 <a href="{{ route('admin.coupons.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.coupons.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-tag text-lg w-6 text-center"></i>
                     <span>Coupons</span>

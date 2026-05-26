@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HomeHeroSlideController;
+use App\Http\Controllers\Admin\HomePromoBannerController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
@@ -71,6 +72,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Home hero slider
     Route::resource('hero-slides', HomeHeroSlideController::class)->except(['show']);
+
+    // Home promo banners (below hero)
+    Route::resource('promo-banners', HomePromoBannerController::class)->except(['show']);
 
     // SEO Settings
     Route::get('seo', [SeoController::class, 'index'])->name('seo.index');
