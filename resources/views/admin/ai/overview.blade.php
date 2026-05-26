@@ -48,7 +48,7 @@
         <i class="bi bi-exclamation-triangle-fill text-lg shrink-0"></i>
         <div>
             <p class="font-semibold">AI service unavailable</p>
-            <p class="text-sm mt-0.5">{{ $error }} Make sure the Python AI service is running on port 8001.</p>
+            <p class="text-sm mt-0.5">{{ $error }}</p>
         </div>
     </div>
 @endisset
@@ -70,7 +70,7 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-6 text-center text-gray-400">
         <i class="bi bi-stars text-4xl opacity-30 block mb-2"></i>
         <p class="font-semibold">AI overview not available</p>
-        <p class="text-sm mt-1">Start the AI service and try again.</p>
+        <p class="text-sm mt-1">Data is loaded from your Laravel database. Add GEMINI_API_KEY for live chat answers.</p>
     </div>
 @else
     @php

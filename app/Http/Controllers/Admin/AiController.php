@@ -23,7 +23,7 @@ class AiController extends Controller
             return view('admin.ai.overview', [
                 'overview' => null,
                 'period' => $period,
-                'error' => 'AI service unavailable. Please try again later.',
+                'error' => 'Could not load overview data.',
             ]);
         }
     }
@@ -39,7 +39,7 @@ class AiController extends Controller
             return view('admin.ai.predictions', [
                 'overview' => null,
                 'period' => $period,
-                'error' => 'AI service unavailable. Please try again later.',
+                'error' => 'Could not load overview data.',
             ]);
         }
     }
@@ -50,7 +50,7 @@ class AiController extends Controller
     }
 
     /**
-     * AJAX endpoint: admin chat -> Python FastAPI -> AI response.
+     * AJAX endpoint: admin chat -> Gemini (Laravel) using live store data.
      */
     public function chatApi(AiChatRequest $request, AiService $ai): JsonResponse
     {
@@ -60,7 +60,6 @@ class AiController extends Controller
         try {
             $result = $ai->chat($message, $adminId);
 
-            // Ensure minimal keys exist even if Python returns unexpected JSON.
             return response()->json([
                 'response_text' => Arr::get($result, 'response_text', 'No response available.'),
                 'intent' => Arr::get($result, 'intent', 'unknown'),
@@ -73,14 +72,14 @@ class AiController extends Controller
             ]);
         } catch (Throwable $e) {
             return response()->json([
-                'response_text' => 'AI service unavailable. Please try again later.',
+                'response_text' => 'AI request failed. Please check GEMINI_API_KEY and try again.',
                 'intent' => 'unknown',
                 'data' => null,
                 'metrics' => null,
                 'recommendations' => null,
                 'table_data' => null,
                 'confidence' => 0,
-                'error' => 'AI request failed.',
+                'error' => $e->getMessage(),
             ], 503);
         }
     }

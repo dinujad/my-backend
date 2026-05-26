@@ -3,29 +3,30 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | AI Service (FastAPI) URL
+    | Google Gemini API
     |--------------------------------------------------------------------------
     |
-    | Laravel calls the Python FastAPI service over HTTP.
+    | Admin AI chat uses Gemini directly from Laravel (no external Python service).
+    | Set GEMINI_API_KEY in .env when you are ready to enable live AI responses.
     |
     */
-    'base_url' => env('AI_SERVICE_URL', 'http://127.0.0.1:8001'),
+    'gemini_api_key' => env('GEMINI_API_KEY'),
+
+    'gemini_model' => env('GEMINI_MODEL', 'gemini-flash-latest'),
+
+    'gemini_base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
 
     /*
     |--------------------------------------------------------------------------
     | HTTP Timeout (seconds)
     |--------------------------------------------------------------------------
     */
-    // Gemini calls can be slower (especially when quota fallback kicks in),
-    // so keep timeout higher to avoid "AI request failed" in the chat UI.
     'timeout_seconds' => (int) env('AI_SERVICE_TIMEOUT', 60),
 
     /*
     |--------------------------------------------------------------------------
-    | HTTP Retry Count
+    | Store name shown in AI prompts
     |--------------------------------------------------------------------------
     */
-    // Avoid long overall wait: we already do model fallback inside FastAPI.
-    'retry_count' => (int) env('AI_SERVICE_RETRY_COUNT', 0),
+    'store_name' => env('AI_STORE_NAME', 'Print Works.LK'),
 ];
-

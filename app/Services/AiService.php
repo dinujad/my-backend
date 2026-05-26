@@ -2,85 +2,126 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
-use Throwable;
+use RuntimeException;
 
 class AiService
 {
-    /**
-     * Base URL for the Python FastAPI service.
-     */
-    private function baseUrl(): string
-    {
-        return rtrim(config('ai.base_url'), '/');
-    }
+    public function __construct(
+        private StoreAiContextService $storeContext,
+        private GeminiService $gemini,
+    ) {}
 
     /**
-     * Shared request options.
-     */
-    private function httpClient()
-    {
-        $timeout = (int) config('ai.timeout_seconds', 10);
-        $retries = (int) config('ai.retry_count', 1);
-
-        return Http::timeout($timeout)
-            ->retry($retries, 200);
-    }
-
-    /**
-     * Call Python /api/predict/overview.
+     * Admin overview / predictions — computed from Laravel DB (no external service).
      */
     public function getOverview(string $period = 'last_30_days'): array
     {
-        $response = $this->getJson(
-            $this->baseUrl() . '/api/predict/overview',
-            ['period' => $period],
-        );
-
-        return $response;
+        return $this->storeContext->getOverview($period);
     }
 
     /**
-     * Call Python /api/chat.
+     * Admin chat — Gemini answers using live store data from this Laravel app.
      */
     public function chat(string $message, ?int $adminId = null): array
     {
-        return $this->postJson(
-            $this->baseUrl() . '/api/chat',
-            [
-                'message' => $message,
-                'admin_id' => $adminId,
+        $intent = $this->detectIntent($message);
+        $context = $this->storeContext->buildCompactContext();
+
+        if (! $this->gemini->isConfigured()) {
+            return [
+                'response_text' => 'Gemini API key is not configured yet. Add GEMINI_API_KEY to your backend .env file, then redeploy. Until then, use AI Overview and Reports for real store numbers.',
+                'intent' => $intent,
+                'data' => $context['summary'],
+                'metrics' => $context['periods']['today'] ?? null,
+                'recommendations' => [],
+                'table_data' => null,
+                'confidence' => 0,
+                'error' => 'GEMINI_API_KEY missing',
+            ];
+        }
+
+        try {
+            $answer = $this->gemini->chat($message, $context);
+
+            return [
+                'response_text' => $answer,
+                'intent' => $intent,
+                'data' => $context['summary'],
+                'metrics' => $this->metricsForIntent($intent, $context),
+                'recommendations' => [],
+                'table_data' => $this->tableDataForIntent($intent, $context),
+                'confidence' => 0.92,
+                'error' => null,
+            ];
+        } catch (RuntimeException $e) {
+            throw $e;
+        }
+    }
+
+    private function detectIntent(string $message): string
+    {
+        $m = mb_strtolower(trim($message));
+
+        if (preg_match('/product|item|stock|inventory|catalog|kohomada|kohomda|kawda/i', $m)) {
+            return 'products';
+        }
+        if (preg_match('/sales|revenue|income|order|ada|month|week|gana|sales/i', $m)) {
+            return 'sales';
+        }
+        if (preg_match('/customer|client|buyer/i', $m)) {
+            return 'customers';
+        }
+        if (preg_match('/category|categories/i', $m)) {
+            return 'categories';
+        }
+        if (preg_match('/forecast|predict|future|next/i', $m)) {
+            return 'forecast';
+        }
+
+        return 'general';
+    }
+
+    private function metricsForIntent(string $intent, array $context): ?array
+    {
+        return match ($intent) {
+            'sales' => $context['periods']['today'] ?? null,
+            'products' => [
+                'total_products' => $context['summary']['total_products'] ?? 0,
+                'active_products' => $context['summary']['active_products'] ?? 0,
             ],
-        );
+            'customers' => [
+                'customers' => $context['summary']['customers'] ?? 0,
+            ],
+            default => $context['summary'] ?? null,
+        };
     }
 
-    private function getJson(string $url, array $query = []): array
+    private function tableDataForIntent(string $intent, array $context): ?array
     {
-        $response = $this->httpClient()->get($url, $query);
-        return $this->handleJsonResponse($response);
-    }
-
-    private function postJson(string $url, array $payload): array
-    {
-        $response = $this->httpClient()->post($url, $payload);
-        return $this->handleJsonResponse($response);
-    }
-
-    private function handleJsonResponse(Response $response): array
-    {
-        if (! $response->successful()) {
-            throw new \RuntimeException(
-                'AI service request failed. Status=' . $response->status() . ' Body=' . $response->body()
-            );
+        if ($intent === 'products') {
+            return collect($context['low_stock_products'] ?? [])
+                ->map(fn ($row) => [
+                    'Product' => $row['name'] ?? '',
+                    'SKU' => $row['sku'] ?? '',
+                    'Stock' => $row['stock'] ?? '',
+                ])
+                ->take(8)
+                ->values()
+                ->all() ?: null;
         }
 
-        $json = $response->json();
-        if (! is_array($json)) {
-            throw new \RuntimeException('AI service returned non-JSON response.');
+        if ($intent === 'sales') {
+            return collect($context['top_products_last_30_days'] ?? [])
+                ->map(fn ($row) => [
+                    'Product' => $row['product_name'] ?? '',
+                    'Qty sold' => $row['quantity'] ?? '',
+                    'Revenue (LKR)' => $row['revenue_lkr'] ?? '',
+                ])
+                ->take(8)
+                ->values()
+                ->all() ?: null;
         }
 
-        return $json;
+        return null;
     }
 }
-

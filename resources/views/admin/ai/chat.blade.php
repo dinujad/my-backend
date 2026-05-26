@@ -117,10 +117,10 @@
                 <i class="bi bi-shield-check-fill text-brand-red"></i> How it works
             </h2>
             <ul class="space-y-2 text-xs text-gray-600">
-                <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Gemini classifies your intent</li>
+                <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Powered by Google Gemini</li>
                 <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Real numbers from your database</li>
                 <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Sinhala, Singlish, English all work</li>
-                <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> No hallucination — grounded only</li>
+                <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Only your store products &amp; sales</li>
             </ul>
         </div>
     </div>
@@ -342,7 +342,7 @@
             removeTyping();
             appendMessage({
                 role: 'assistant',
-                text: 'AI service unavailable. Please ensure the AI service is running on port 8001.',
+                text: 'Could not reach the AI service. Check GEMINI_API_KEY in backend .env and redeploy.',
                 error: 'Connection failed.'
             });
         } finally {

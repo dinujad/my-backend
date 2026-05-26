@@ -48,7 +48,7 @@
         <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400">
             <i class="bi bi-graph-up text-5xl opacity-20 block mb-3"></i>
             <p class="font-semibold text-gray-500">Predictions not available</p>
-            <p class="text-sm mt-1">Ensure the AI service is running on port 8001.</p>
+            <p class="text-sm mt-1">Overview is computed from your store database.</p>
         </div>
     @else
         @php
