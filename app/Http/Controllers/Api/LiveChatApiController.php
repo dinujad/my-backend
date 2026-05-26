@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\ChatService;
+use App\Services\CustomerShopAssistantService;
 use App\Models\ChatConversation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use App\Events\ChatMessageSent;
 use App\Events\ChatStatusUpdated;
 
@@ -97,5 +97,27 @@ class LiveChatApiController extends Controller
         $conversation->messages()->where('sender_type', '!=', 'customer')->update(['is_read' => true]);
         
         return response()->json(['success' => true]);
+    }
+
+    public function assistant(Request $request, CustomerShopAssistantService $assistant)
+    {
+        $data = $request->validate([
+            'message' => 'required|string|min:2|max:1000',
+        ]);
+
+        try {
+            $result = $assistant->ask($data['message']);
+
+            return response()->json([
+                'reply' => $result['reply'] ?? '',
+                'suggestions' => $result['suggestions'] ?? [],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'reply' => 'Sorry, I could not load AI suggestions right now. Please try again.',
+                'suggestions' => [],
+                'error' => $e->getMessage(),
+            ], 503);
+        }
     }
 }

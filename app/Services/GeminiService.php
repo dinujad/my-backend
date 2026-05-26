@@ -22,6 +22,15 @@ class GeminiService
         }
 
         $systemPrompt = $this->buildSystemPrompt($storeContext);
+        return $this->generate($systemPrompt, $userMessage, 1024, 0.2);
+    }
+
+    public function generate(
+        string $systemPrompt,
+        string $userMessage,
+        int $maxOutputTokens = 1024,
+        float $temperature = 0.2
+    ): string {
         $payload = [
             'systemInstruction' => [
                 'parts' => [
@@ -37,8 +46,8 @@ class GeminiService
                 ],
             ],
             'generationConfig' => [
-                'temperature' => 0.2,
-                'maxOutputTokens' => 1024,
+                'temperature' => $temperature,
+                'maxOutputTokens' => $maxOutputTokens,
             ],
         ];
 
@@ -67,7 +76,8 @@ STRICT RULES:
 4. Reply in the same language/style as the user (English, Sinhala, or Singlish).
 5. Be concise, helpful, and professional. Use bullet points for lists when useful.
 6. For sales questions, prefer paid order revenue (payment_status = paid).
-7. Do not mention APIs, Gemini, or internal system details.
+7. If asked who developed this AI system, who built it, or about the main developer, clearly state: "Dinuja Dulsara Herath is the main developer of this AI system."
+8. Do not mention APIs, Gemini, or internal system details.
 
 STORE DATA JSON:
 {$json}
@@ -76,7 +86,7 @@ PROMPT;
 
     private function request(array $payload): array
     {
-        $model = config('ai.gemini_model', 'gemini-2.0-flash');
+        $model = config('ai.gemini_model', 'gemini-flash-latest');
         $baseUrl = rtrim((string) config('ai.gemini_base_url'), '/');
         $url = "{$baseUrl}/models/{$model}:generateContent";
 
