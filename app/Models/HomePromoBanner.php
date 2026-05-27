@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ProductMediaPath;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
@@ -42,16 +43,9 @@ class HomePromoBanner extends Model
             return null;
         }
 
-        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
-            return $this->image;
-        }
+        $url = ProductMediaPath::publicUrl($this->image);
 
-        $path = ltrim(str_replace('\\', '/', $this->image), '/');
-        if (str_starts_with($path, 'storage/')) {
-            return '/'.$path;
-        }
-
-        return '/storage/'.$path;
+        return $url !== '' ? $url : null;
     }
 
     public function deleteImageFile(): void

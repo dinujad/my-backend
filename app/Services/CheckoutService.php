@@ -157,7 +157,7 @@ class CheckoutService
                     if (str_starts_with($fileKey, "item_{$index}_file_")) {
                         $fieldLabel = str_replace("item_{$index}_file_", '', $fileKey);
                         $path = $uploadedFile->store('orders', 'public');
-                        $customizations[$fieldLabel] = '/storage/' . ltrim($path, '/');
+                        $customizations[$fieldLabel] = \App\Support\ProductMediaPath::publicUrl('storage/'.ltrim($path, '/'));
                     }
                 }
 

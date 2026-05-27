@@ -127,8 +127,8 @@ class ProductApiController extends Controller
         // Format LKR price like "Rs. 4,475.00"
         $fmt = fn(float $v) => 'Rs. ' . number_format($v, 2);
 
-        // Same-origin paths (/storage/…) — works with Next.js rewrites; legacy localhost URLs normalized.
-        $formatImagePath = fn (string $path) => ProductMediaPath::normalize($path);
+        // Absolute URLs on API host (APP_URL) — all uploads served from api.printworks.lk/storage/…
+        $formatImagePath = fn (string $path) => ProductMediaPath::publicUrl($path);
         
         $mainImage = '';
         $mainImageAlt = null;

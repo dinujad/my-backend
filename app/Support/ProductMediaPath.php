@@ -84,4 +84,26 @@ final class ProductMediaPath
 
         return ltrim($norm, '/');
     }
+
+    /**
+     * Full public URL for API / storefront (uses APP_URL, e.g. https://api.printworks.lk/storage/…).
+     */
+    public static function publicUrl(?string $path): string
+    {
+        $norm = self::normalize((string) $path);
+        if ($norm === '') {
+            return '';
+        }
+
+        if (str_starts_with($norm, '/images/')) {
+            $frontend = rtrim((string) config('app.frontend_url', ''), '/');
+            if ($frontend !== '') {
+                return $frontend.$norm;
+            }
+        }
+
+        $base = rtrim((string) config('app.url', ''), '/');
+
+        return $base !== '' ? $base.$norm : $norm;
+    }
 }
