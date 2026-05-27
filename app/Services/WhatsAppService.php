@@ -11,11 +11,14 @@ class WhatsAppService
     protected string $apiUrl = 'https://wa.hglk.link/api/send_message.php';
     protected string $email;
     protected string $apiKey;
+    /** @var list<string> */
+    protected array $alertNumbers;
 
     public function __construct()
     {
-        $this->email = config('services.whatsapp.email', 'dulsaradinuja47@gmail.com');
-        $this->apiKey = config('services.whatsapp.api_key', 'C0A1C0C348');
+        $this->email = (string) env('WHATSAPP_API_EMAIL', '');
+        $this->apiKey = (string) env('WHATSAPP_API_KEY', '');
+        $this->alertNumbers = $this->parseAlertNumbers((string) env('WHATSAPP_ALERT_NUMBERS', ''));
     }
 
     /**
@@ -23,6 +26,11 @@ class WhatsAppService
      */
     public function sendMessage(string $phone, string $text): bool
     {
+        if ($this->email === '' || $this->apiKey === '') {
+            Log::warning('WhatsApp API credentials are missing.');
+            return false;
+        }
+
         // Format phone: must be in number@c.us format
         $chatId = $this->formatPhone($phone);
         if (!$chatId) {
@@ -186,6 +194,23 @@ class WhatsAppService
     }
 
     /**
+     * Notify admins/agents about support events over WhatsApp.
+     */
+    public function sendSupportAlert(string $text): bool
+    {
+        if ($this->alertNumbers === []) {
+            return false;
+        }
+
+        $delivered = false;
+        foreach ($this->alertNumbers as $number) {
+            $delivered = $this->sendMessage($number, $text) || $delivered;
+        }
+
+        return $delivered;
+    }
+
+    /**
      * Format phone number to WhatsApp format (e.g. 94725729000@c.us)
      */
     private function formatPhone(string $phone): ?string
@@ -204,5 +229,16 @@ class WhatsAppService
         }
 
         return $phone . '@c.us';
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function parseAlertNumbers(string $csv): array
+    {
+        $numbers = array_map('trim', explode(',', $csv));
+        $numbers = array_filter($numbers, fn ($v) => $v !== '');
+
+        return array_values(array_unique($numbers));
     }
 }

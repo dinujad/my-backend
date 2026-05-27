@@ -13,6 +13,10 @@ use App\Mail\ChatTransferred;
 
 class ChatService
 {
+    public function __construct(
+        private WhatsAppService $whatsappService,
+    ) {}
+
     /**
      * Start a new conversation or resume an existing active one for a guest/user.
      */
@@ -65,6 +69,11 @@ class ChatService
                 \Illuminate\Support\Facades\Log::error("Failed to send new chat email: " . $e->getMessage());
             }
         }
+
+        $customerLabel = $conversation->customer_name ?: 'Customer';
+        $this->whatsappService->sendSupportAlert(
+            "New support chat started by {$customerLabel}. Session: {$conversation->session_id}"
+        );
 
         return $conversation;
     }
@@ -171,6 +180,11 @@ class ChatService
                 \Illuminate\Support\Facades\Log::error("Failed to send chat transfer email: " . $e->getMessage());
             }
         }
+
+        $agentName = $agent?->name ?? 'another agent';
+        $this->whatsappService->sendSupportAlert(
+            "Chat transferred to {$agentName}. Reason: {$reason}. Session: {$conversation->session_id}"
+        );
     }
     
     public function closeConversation(ChatConversation $conversation, int $agentId): void
