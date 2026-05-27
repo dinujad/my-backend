@@ -747,6 +747,36 @@
                 </div>
             </div>
 
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-3">
+                <h2 class="font-semibold text-gray-800 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="bi bi-house-door text-brand-red"></i> Home page
+                </h2>
+                <p class="text-xs text-gray-500">Tick where this product should appear. Special Offer shows max 2 products in the left sidebar.</p>
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" name="is_special_offer" value="1" {{ old('is_special_offer', $product->is_special_offer) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-red focus:ring-brand-red">
+                    Special Offer
+                </label>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600 shrink-0">Offer price (Rs.)</label>
+                    <input type="number" name="offer_price" step="0.01" min="0"
+                           value="{{ old('offer_price', $product->offer_price) }}"
+                           placeholder="Sidebar price"
+                           class="flex-1 border border-gray-200 rounded-md px-2 py-1.5 text-sm focus:border-brand-red outline-none">
+                </div>
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-red focus:ring-brand-red">
+                    Featured tab
+                </label>
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" name="is_on_sale" value="1" {{ old('is_on_sale', $product->is_on_sale) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-red focus:ring-brand-red">
+                    On Sale tab
+                </label>
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" name="is_top_rated" value="1" {{ old('is_top_rated', $product->is_top_rated) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-red focus:ring-brand-red">
+                    Top Rated tab
+                </label>
+            </div>
+
             <!-- Categories -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-3" x-data="categoryManager()">
                 <h2 class="font-semibold text-gray-800 pb-2 border-b border-gray-100">Product Categories</h2>
@@ -843,41 +873,66 @@
                         </template>
                     </div>
 
-                    <div x-data="{ previews: [], galleryError: null }">
-                        <label class="block text-xs font-semibold text-gray-500 mb-2 uppercase">Upload New Gallery Images</label>
-                        <input type="file" name="product_images[]" multiple accept="image/*" 
-                            @change="
-                                galleryError = null;
-                                previews = [];
-                                const files = Array.from($event.target.files || []);
-                                const allowed = ['jpeg','jpg','png','webp'];
-                                const invalid = files.filter(f => {
-                                    const ext = (f.name.split('.').pop() || '').toLowerCase();
-                                    return !allowed.includes(ext) && !(f.type && f.type.startsWith('image/'));
-                                });
-                                if(invalid.length > 0) {
-                                    galleryError = 'Gallery images must be jpeg/png/jpg/webp only.';
-                                    $event.target.value = '';
-                                    previews = [];
-                                    return;
-                                }
-                                files.forEach((f, idx) => {
-                                    let r = new FileReader();
-                                    r.onload = e => previews.push({
-                                        preview: e.target.result,
-                                        name: f.name,
-                                        alt: ''
-                                    });
-                                    r.readAsDataURL(f);
-                                });
-                            "
+                    <div x-data="{
+                        previews: [],
+                        galleryFiles: [],
+                        galleryError: null,
+                        addGalleryFiles(event) {
+                            this.galleryError = null;
+                            const picked = Array.from(event.target.files || []);
+                            event.target.value = '';
+                            if (!picked.length) return;
+                            const allowed = ['jpeg','jpg','png','webp'];
+                            const invalid = picked.filter(f => {
+                                const ext = (f.name.split('.').pop() || '').toLowerCase();
+                                return !allowed.includes(ext) && !(f.type && f.type.startsWith('image/'));
+                            });
+                            if (invalid.length > 0) {
+                                this.galleryError = 'Gallery images must be jpeg/png/jpg/webp only.';
+                                return;
+                            }
+                            picked.forEach((f) => {
+                                this.galleryFiles.push(f);
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    this.previews.push({ preview: e.target.result, name: f.name, alt: '' });
+                                };
+                                reader.readAsDataURL(f);
+                            });
+                        },
+                        removeNewImage(index) {
+                            this.previews.splice(index, 1);
+                            this.galleryFiles.splice(index, 1);
+                        },
+                        syncFileInput() {
+                            const input = this.$refs.galleryFileInput;
+                            if (!input) return;
+                            const dt = new DataTransfer();
+                            this.galleryFiles.forEach((f) => dt.items.add(f));
+                            input.files = dt.files;
+                        },
+                        init() {
+                            const form = this.$el.closest('form');
+                            if (form) form.addEventListener('submit', () => this.syncFileInput());
+                        }
+                    }">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Upload New Gallery Images</label>
+                        <p class="text-[11px] text-gray-400 mb-2">Choose files one at a time or many together — each pick is added to the list below.</p>
+                        <input type="file" x-ref="galleryFileInput" name="product_images[]" multiple accept="image/*"
+                            @change="addGalleryFiles($event)"
                             class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 mb-2 cursor-pointer mt-2">
                         
                         <div class="space-y-3" x-show="previews.length > 0">
-                            <template x-for="(p, idx) in previews" :key="idx">
+                            <template x-for="(p, idx) in previews" :key="'new-' + idx + '-' + p.name">
                                 <div class="rounded border border-gray-200 p-2 bg-gray-50">
                                     <div class="flex gap-3 items-start">
-                                        <img :src="p.preview" class="w-20 h-20 object-cover rounded border border-gray-200 shadow-sm shrink-0 opacity-70">
+                                        <div class="relative group w-20 h-20 shrink-0">
+                                            <img :src="p.preview" class="w-20 h-20 object-cover rounded border border-gray-200 shadow-sm opacity-90">
+                                            <button type="button" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded"
+                                                @click="removeNewImage(idx)" title="Remove">
+                                                <i class="bi bi-trash text-lg text-red-300"></i>
+                                            </button>
+                                        </div>
                                         <div class="flex-1 min-w-0 space-y-1.5">
                                             <div class="text-xs text-gray-500 truncate" x-text="p.name"></div>
                                             <input type="text"

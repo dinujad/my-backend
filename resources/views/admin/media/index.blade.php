@@ -36,8 +36,15 @@
         <div class="group bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
             <div class="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
                 @if(str_starts_with($file->mime_type ?? '', 'image/'))
-                    <img src="{{ asset('storage/' . $file->path) }}" alt="{{ $file->alt_text }}"
-                         class="w-full h-full object-cover">
+                    @if($file->existsOnDisk())
+                        <img src="{{ $file->web_path }}" alt="{{ $file->alt_text }}"
+                             class="w-full h-full object-cover" loading="lazy">
+                    @else
+                        <div class="flex flex-col items-center justify-center gap-1 p-2 text-center text-amber-700">
+                            <i class="bi bi-exclamation-triangle text-2xl"></i>
+                            <span class="text-[10px] font-medium leading-tight">File missing on server.<br>Run <code class="text-[9px]">storage:link</code></span>
+                        </div>
+                    @endif
                 @else
                     <i class="bi bi-file-earmark text-gray-400 text-3xl"></i>
                 @endif
@@ -46,7 +53,7 @@
                 <p class="text-xs text-gray-700 truncate font-medium">{{ $file->filename }}</p>
                 <p class="text-xs text-gray-400">{{ $file->alt_text ? Str::limit($file->alt_text, 20) : 'No alt text' }}</p>
                 <div class="flex items-center gap-1 mt-1">
-                    <button onclick="copyUrl('{{ asset('storage/' . $file->path) }}')"
+                    <button type="button" data-url="{{ $file->url }}" onclick="copyUrl(this.dataset.url)"
                             class="text-xs text-blue-500 hover:underline">Copy URL</button>
                     <span class="text-gray-300">|</span>
                     <form method="POST" action="{{ route('admin.media.destroy', $file) }}" onsubmit="return confirm('Delete file?')">

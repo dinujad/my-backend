@@ -41,6 +41,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('products/ajax/categories', [ProductAjaxController::class, 'storeCategory'])->name('products.ajax.categories');
     Route::post('products/ajax/tags', [ProductAjaxController::class, 'storeTag'])->name('products.ajax.tags');
     Route::post('products/ajax/brands', [ProductAjaxController::class, 'storeBrand'])->name('products.ajax.brands');
+    Route::patch('products/{product}/homepage-flags', [ProductController::class, 'updateHomepageFlags'])->name('products.homepage-flags');
     Route::resource('products', ProductController::class)->except(['show']);
 
     // Categories

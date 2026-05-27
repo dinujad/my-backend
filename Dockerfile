@@ -34,9 +34,11 @@ RUN mkdir -p storage/framework/views storage/framework/cache storage/framework/s
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Create the public/storage symlink so uploaded files (products, gallery, etc.)
-# are accessible via /storage/... URLs (storage/app/public → public/storage).
+# Symlink at build; entrypoint re-runs storage:link after volume mount on start.
 RUN php artisan storage:link --force
+
+COPY docker/entrypoint.sh /usr/local/bin/laravel-entrypoint.sh
+RUN chmod +x /usr/local/bin/laravel-entrypoint.sh
 
 EXPOSE 80
 
@@ -44,4 +46,4 @@ EXPOSE 80
 HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
     CMD curl -fsS "http://127.0.0.1/up" >/dev/null || exit 1
 
-CMD ["apache2-foreground"]
+ENTRYPOINT ["/usr/local/bin/laravel-entrypoint.sh"]

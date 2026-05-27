@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Support\ProductListingPrice;
 use App\Support\ProductMediaPath;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class ProductApiController extends Controller
      */
     public function index(): JsonResponse
     {
-        $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices'])
+        $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices', 'variations'])
             ->active()
             ->orderBy('sort_order')
             ->orderBy('name')
@@ -55,7 +56,7 @@ class ProductApiController extends Controller
      */
     public function byCategory(string $categorySlug): JsonResponse
     {
-        $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices'])
+        $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices', 'variations'])
             ->active()
             ->whereHas('category', fn($q) => $q->where('slug', $categorySlug))
             ->orderBy('sort_order')
@@ -82,7 +83,7 @@ class ProductApiController extends Controller
 
         $query = Product::query()
             ->active()
-            ->with('category')
+            ->with(['category', 'variations'])
             ->where(function ($builder) use ($q) {
                 $builder->where('name', 'like', "%{$q}%")
                     ->orWhere('sku', 'like', "%{$q}%")
@@ -101,8 +102,8 @@ class ProductApiController extends Controller
             ->orderBy('name')
             ->limit(8)
             ->get()
-            ->map(function (Product $p) use ($fmt) {
-                $price = (float) $p->price;
+            ->map(function (Product $p) {
+                $listing = ProductListingPrice::resolve($p);
                 $image = $p->image ? ProductMediaPath::normalize($p->image) : '';
 
                 return [
@@ -111,7 +112,7 @@ class ProductApiController extends Controller
                     'slug' => $p->slug,
                     'sku' => $p->sku ?? 'PW-'.str_pad((string) $p->id, 4, '0', STR_PAD_LEFT),
                     'image' => $image,
-                    'price' => $fmt($price),
+                    'price' => $listing['price'],
                     'category' => $p->category?->name ?? '',
                 ];
             });
@@ -121,11 +122,20 @@ class ProductApiController extends Controller
 
     private function format(Product $p): array
     {
-        $price    = (float) $p->price;
-        $compare  = $p->compare_price ? (float) $p->compare_price : null;
+        $listing = ProductListingPrice::resolve($p);
+        $price = $listing['numericPrice'];
+        $compare = $p->compare_price ? (float) $p->compare_price : null;
+        $offerPrice = $p->offer_price ? (float) $p->offer_price : null;
 
         // Format LKR price like "Rs. 4,475.00"
-        $fmt = fn(float $v) => 'Rs. ' . number_format($v, 2);
+        $fmt = fn (float $v) => 'Rs. '.number_format($v, 2);
+
+        $oldPrice = null;
+        if ($p->is_on_sale && $compare && $compare > $price) {
+            $oldPrice = $fmt($compare);
+        } elseif ($compare && $compare > $price) {
+            $oldPrice = $fmt($compare);
+        }
 
         // Absolute URLs on API host (APP_URL) — all uploads served from api.printworks.lk/storage/…
         $formatImagePath = fn (string $path) => ProductMediaPath::publicUrl($path);
@@ -161,10 +171,18 @@ class ProductApiController extends Controller
                 'average' => $avgRating !== null ? round((float) $avgRating, 1) : 0,
                 'count'   => $reviewCount,
             ],
-            'price'        => $fmt($price),
+            'price'        => $listing['price'],
             'numericPrice' => $price,
-            'oldPrice'     => $compare ? $fmt($compare) : null,
+            'priceRange'   => $listing['priceRange'],
+            'priceMin'     => $listing['priceMin'],
+            'priceMax'     => $listing['priceMax'],
+            'oldPrice'     => $oldPrice,
             'compare_price'=> $compare,
+            'offer_price'  => $offerPrice > 0 ? $offerPrice : null,
+            'is_featured'  => (bool) $p->is_featured,
+            'is_special_offer' => (bool) $p->is_special_offer,
+            'is_on_sale'   => (bool) $p->is_on_sale,
+            'is_top_rated' => (bool) $p->is_top_rated,
             'image'        => $mainImage,
             'image_alt'    => $mainImageAlt,
             'gallery'      => $p->images
@@ -208,7 +226,6 @@ class ProductApiController extends Controller
             'badge'        => $p->badge,
             'variants_note'=> $p->variants_note,
             'variantsNote' => $p->variants_note,  // alias
-            'is_featured'  => $p->is_featured,
             'sort_order'   => $p->sort_order,
             'category'     => $p->category?->name ?? '',
             'categorySlug' => $p->category?->slug ?? '',

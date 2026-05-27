@@ -9,8 +9,11 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Tag;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -45,7 +48,8 @@ class ProductController extends Controller
 
         $booleans = [
             'manage_stock', 'allow_backorders', 'sold_individually', 'is_fragile',
-            'enable_reviews', 'is_downloadable', 'is_virtual', 'is_active', 'is_featured'
+            'enable_reviews', 'is_downloadable', 'is_virtual', 'is_active', 'is_featured',
+            'is_special_offer', 'is_on_sale', 'is_top_rated',
         ];
         foreach ($booleans as $field) {
             $data[$field] = $request->boolean($field);
@@ -57,13 +61,15 @@ class ProductController extends Controller
             'focus_keyword' => $request->input('focus_keyword'),
             'main_image_alt' => $request->input('main_image_alt'),
         ];
-        
+
         if ($request->filled('attributes_config')) {
             $data['attributes_config'] = json_decode($request->input('attributes_config'), true);
         }
 
         $data['page_settings'] = $request->input('page_settings', []);
         $data['customization_settings'] = $this->normalizeCustomizationSettings($request->input('customization_settings', []));
+
+        $this->guardSpecialOfferLimit($data['is_special_offer'] ?? false);
 
         $product = Product::create($data);
 
@@ -201,7 +207,8 @@ class ProductController extends Controller
 
         $booleans = [
             'manage_stock', 'allow_backorders', 'sold_individually', 'is_fragile',
-            'enable_reviews', 'is_downloadable', 'is_virtual', 'is_active', 'is_featured'
+            'enable_reviews', 'is_downloadable', 'is_virtual', 'is_active', 'is_featured',
+            'is_special_offer', 'is_on_sale', 'is_top_rated',
         ];
         foreach ($booleans as $field) {
             $data[$field] = $request->boolean($field);
@@ -221,6 +228,8 @@ class ProductController extends Controller
         $data['page_settings'] = $request->input('page_settings', []);
         $rawCustomization = $request->input('customization_settings', []);
         $data['customization_settings'] = $this->normalizeCustomizationSettings($rawCustomization);
+
+        $this->guardSpecialOfferLimit($request->boolean('is_special_offer'), $product->id);
 
         \Log::info('ProductController@update customization debug', [
             'product_id'  => $product->id,
@@ -482,5 +491,64 @@ class ProductController extends Controller
             'use_popup' => $normalizeBool($customizationSettings['use_popup'] ?? false),
             'popup_button_label' => isset($customizationSettings['popup_button_label']) ? (string) $customizationSettings['popup_button_label'] : '',
         ];
+    }
+
+    public function updateHomepageFlags(Request $request, Product $product): JsonResponse
+    {
+        $request->validate([
+            'is_featured' => 'sometimes|boolean',
+            'is_special_offer' => 'sometimes|boolean',
+            'is_on_sale' => 'sometimes|boolean',
+            'is_top_rated' => 'sometimes|boolean',
+            'offer_price' => 'nullable|numeric|min:0',
+        ]);
+
+        $isSpecial = $request->has('is_special_offer')
+            ? $request->boolean('is_special_offer')
+            : (bool) $product->is_special_offer;
+
+        $this->guardSpecialOfferLimit($isSpecial, $product->id);
+
+        $offerPrice = $request->has('offer_price')
+            ? ($request->filled('offer_price') ? (float) $request->input('offer_price') : null)
+            : $product->offer_price;
+
+        $product->update([
+            'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured,
+            'is_special_offer' => $isSpecial,
+            'is_on_sale' => $request->has('is_on_sale') ? $request->boolean('is_on_sale') : $product->is_on_sale,
+            'is_top_rated' => $request->has('is_top_rated') ? $request->boolean('is_top_rated') : $product->is_top_rated,
+            'offer_price' => $offerPrice,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'product' => [
+                'id' => $product->id,
+                'is_featured' => $product->is_featured,
+                'is_special_offer' => $product->is_special_offer,
+                'is_on_sale' => $product->is_on_sale,
+                'is_top_rated' => $product->is_top_rated,
+                'offer_price' => $product->offer_price,
+            ],
+        ]);
+    }
+
+    private function guardSpecialOfferLimit(bool $enabling, ?int $exceptProductId = null): void
+    {
+        if (! $enabling) {
+            return;
+        }
+
+        $query = Product::query()->where('is_special_offer', true);
+        if ($exceptProductId) {
+            $query->where('id', '!=', $exceptProductId);
+        }
+
+        if ($query->count() >= 2) {
+            throw ValidationException::withMessages([
+                'is_special_offer' => ['Only 2 products can show in Special Offer on the home page. Untick another product first.'],
+            ]);
+        }
     }
 }

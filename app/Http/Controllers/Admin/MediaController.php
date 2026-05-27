@@ -31,6 +31,15 @@ class MediaController extends Controller
         $folder = trim($request->input('folder', 'uploads'), '/');
         $path = $file->store($folder, 'public');
 
+        if (! Storage::disk('public')->exists($path)) {
+            $message = 'Upload failed — file was not saved to storage.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 500);
+            }
+
+            return back()->withErrors(['file' => $message]);
+        }
+
         $dimensions = @getimagesize($file->getRealPath());
 
         $media = Media::create([

@@ -43,6 +43,7 @@ class StoreProductRequest extends FormRequest
             // Pricing (Required for non-variable)
             'price' => 'nullable|numeric|min:0',
             'compare_price' => 'nullable|numeric|min:0',
+            'offer_price' => 'nullable|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
             'tax_class' => 'nullable|string|max:50',
             'tax_status' => 'nullable|string|max:50',
@@ -73,6 +74,9 @@ class StoreProductRequest extends FormRequest
             'is_virtual' => 'boolean',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
+            'is_special_offer' => 'boolean',
+            'is_on_sale' => 'boolean',
+            'is_top_rated' => 'boolean',
             'sort_order' => 'integer|min:0',
             
             // Extensibility
