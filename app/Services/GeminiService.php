@@ -18,7 +18,7 @@ class GeminiService
     public function chat(string $userMessage, array $storeContext): string
     {
         if (! $this->isConfigured()) {
-            throw new RuntimeException('Gemini API key is not configured. Set GEMINI_API_KEY in .env.');
+            throw new RuntimeException('AI service is not configured.');
         }
 
         $systemPrompt = $this->buildSystemPrompt($storeContext);
@@ -29,8 +29,18 @@ class GeminiService
         string $systemPrompt,
         string $userMessage,
         int $maxOutputTokens = 1024,
-        float $temperature = 0.2
+        float $temperature = 0.2,
+        bool $jsonMode = false
     ): string {
+        $generationConfig = [
+            'temperature' => $temperature,
+            'maxOutputTokens' => $maxOutputTokens,
+        ];
+
+        if ($jsonMode) {
+            $generationConfig['responseMimeType'] = 'application/json';
+        }
+
         $payload = [
             'systemInstruction' => [
                 'parts' => [
@@ -45,23 +55,34 @@ class GeminiService
                     ],
                 ],
             ],
-            'generationConfig' => [
-                'temperature' => $temperature,
-                'maxOutputTokens' => $maxOutputTokens,
-            ],
+            'generationConfig' => $generationConfig,
         ];
 
         $response = $this->request($payload);
         $text = data_get($response, 'candidates.0.content.parts.0.text');
 
         if (! is_string($text) || trim($text) === '') {
-            throw new RuntimeException('Gemini returned an empty response.');
+            throw new RuntimeException('AI returned an empty response.');
         }
 
         return trim($text);
     }
 
+    public function generateJson(
+        string $systemPrompt,
+        string $userMessage,
+        int $maxOutputTokens = 768,
+        float $temperature = 0.2
+    ): string {
+        return $this->generate($systemPrompt, $userMessage, $maxOutputTokens, $temperature, true);
+    }
+
     private function buildSystemPrompt(array $storeContext): string
+    {
+        return $this->buildAdminSystemPrompt($storeContext);
+    }
+
+    public function buildAdminSystemPrompt(array $storeContext): string
     {
         $storeName = config('ai.store_name', 'Print Works.LK');
         $json = json_encode($storeContext, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
@@ -77,7 +98,7 @@ STRICT RULES:
 5. Be concise, helpful, and professional. Use bullet points for lists when useful.
 6. For sales questions, prefer paid order revenue (payment_status = paid).
 7. If asked who developed this AI system, who built it, or about the main developer, clearly state: "Dinuja Dulsara Herath is the main developer of this AI system."
-8. Do not mention APIs, Gemini, or internal system details.
+8. Do not mention APIs, AI providers (Google, Anthropic, etc.), or internal system details.
 
 STORE DATA JSON:
 {$json}
@@ -86,7 +107,28 @@ PROMPT;
 
     private function request(array $payload): array
     {
-        $model = config('ai.gemini_model', 'gemini-flash-latest');
+        $primary = (string) config('ai.gemini_model', 'gemini-2.5-flash-lite');
+        $fallback = (string) config('ai.gemini_model_fallback', 'gemini-2.5-flash-lite');
+
+        $models = array_values(array_unique(array_filter([$primary, $fallback])));
+        $lastError = null;
+
+        foreach ($models as $model) {
+            try {
+                return $this->requestWithModel($payload, $model);
+            } catch (RuntimeException $e) {
+                $lastError = $e;
+                if (! LlmGatewayService::isQuotaOrRateLimitError($e->getMessage())) {
+                    throw $e;
+                }
+            }
+        }
+
+        throw $lastError ?? new RuntimeException('AI request failed.');
+    }
+
+    private function requestWithModel(array $payload, string $model): array
+    {
         $baseUrl = rtrim((string) config('ai.gemini_base_url'), '/');
         $url = "{$baseUrl}/models/{$model}:generateContent";
 
@@ -96,13 +138,17 @@ PROMPT;
             ->post($url, $payload);
 
         if (! $response->successful()) {
-            $message = data_get($response->json(), 'error.message', $response->body());
-            throw new RuntimeException('Gemini API error: '.$message);
+            $message = (string) data_get($response->json(), 'error.message', $response->body());
+            if (LlmGatewayService::isQuotaOrRateLimitError($message)) {
+                throw new RuntimeException($message);
+            }
+
+            throw new RuntimeException('AI service is temporarily unavailable. Please try again.');
         }
 
         $json = $response->json();
         if (! is_array($json)) {
-            throw new RuntimeException('Gemini returned invalid JSON.');
+            throw new RuntimeException('AI returned an invalid response.');
         }
 
         return $json;

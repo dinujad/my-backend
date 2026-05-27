@@ -30,9 +30,10 @@ return [
     | Allowed origins are built from FRONTEND_URL plus optional CORS_ALLOWED_ORIGINS
     | (comma-separated). Set FRONTEND_URL in Coolify — no code changes per deploy.
     |
-    | Example:
-    |   FRONTEND_URL=http://jmtzv27fmefsgsq79a5s655c.46.105.53.117.sslip.io
-    |   CORS_ALLOWED_ORIGINS=https://printworks.lk,https://www.printworks.lk
+    | Example (production):
+    |   APP_URL=https://api.printworks.lk
+    |   FRONTEND_URL=https://printworks.lk
+    |   CORS_ALLOWED_ORIGINS=https://www.printworks.lk
     |
     */
 

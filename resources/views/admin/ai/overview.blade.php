@@ -70,7 +70,7 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-6 text-center text-gray-400">
         <i class="bi bi-stars text-4xl opacity-30 block mb-2"></i>
         <p class="font-semibold">AI overview not available</p>
-        <p class="text-sm mt-1">Data is loaded from your Laravel database. Add GEMINI_API_KEY for live chat answers.</p>
+        <p class="text-sm mt-1">Data is loaded from your Laravel database. Configure AI API keys in the backend for live chat answers.</p>
     </div>
 @else
     @php

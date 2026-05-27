@@ -27,12 +27,12 @@ $publicRoutes = function () {
 
     Route::post('/checkout', [\App\Http\Controllers\Api\CheckoutApiController::class, 'store']);
 
-    // Live Chat Widget Routes
+    // Live Chat Widget Routes (assistant before {sessionId} to avoid route conflicts)
+    Route::post('/chat/assistant', [\App\Http\Controllers\Api\LiveChatApiController::class, 'assistant']);
     Route::post('/chat/init', [\App\Http\Controllers\Api\LiveChatApiController::class, 'init']);
     Route::get('/chat/{sessionId}', [\App\Http\Controllers\Api\LiveChatApiController::class, 'getHistory']);
     Route::post('/chat/{sessionId}/message', [\App\Http\Controllers\Api\LiveChatApiController::class, 'sendMessage']);
     Route::post('/chat/{sessionId}/read', [\App\Http\Controllers\Api\LiveChatApiController::class, 'markRead']);
-    Route::post('/chat/assistant', [\App\Http\Controllers\Api\LiveChatApiController::class, 'assistant']);
 
     // API Authentication for Next.js Frontend
     Route::post('/auth/login', [\App\Http\Controllers\Api\ApiAuthController::class, 'login']);

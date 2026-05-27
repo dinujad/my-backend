@@ -114,10 +114,9 @@ class LiveChatApiController extends Controller
             ]);
         } catch (\Throwable $e) {
             return response()->json([
-                'reply' => 'Sorry, I could not load AI suggestions right now. Please try again.',
+                'reply' => 'Sorry, I could not load suggestions right now. Please try Live Chat or contact us.',
                 'suggestions' => [],
-                'error' => $e->getMessage(),
-            ], 503);
+            ]);
         }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AiChatRequest;
 use App\Services\AiService;
+use App\Services\LlmGatewayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -71,16 +72,22 @@ class AiController extends Controller
                 'error' => Arr::get($result, 'error'),
             ]);
         } catch (Throwable $e) {
+            $msg = $e->getMessage();
+            $isRateLimit = LlmGatewayService::isQuotaOrRateLimitError($msg);
+            $friendly = $isRateLimit
+                ? LlmGatewayService::friendlyQuotaMessage($msg)
+                : 'AI request failed. Check that AI API keys are set in backend environment settings, then try again.';
+
             return response()->json([
-                'response_text' => 'AI request failed. Please check GEMINI_API_KEY and try again.',
+                'response_text' => $friendly,
                 'intent' => 'unknown',
                 'data' => null,
                 'metrics' => null,
                 'recommendations' => null,
                 'table_data' => null,
                 'confidence' => 0,
-                'error' => $e->getMessage(),
-            ], 503);
+                'error' => LlmGatewayService::userFacingErrorCode($msg),
+            ], $isRateLimit ? 200 : 503);
         }
     }
 }

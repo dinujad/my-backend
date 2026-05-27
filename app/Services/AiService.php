@@ -8,6 +8,7 @@ class AiService
 {
     public function __construct(
         private StoreAiContextService $storeContext,
+        private LlmGatewayService $llm,
         private GeminiService $gemini,
     ) {}
 
@@ -27,21 +28,22 @@ class AiService
         $intent = $this->detectIntent($message);
         $context = $this->storeContext->buildCompactContext();
 
-        if (! $this->gemini->isConfigured()) {
+        if (! $this->llm->isConfigured()) {
             return [
-                'response_text' => 'Gemini API key is not configured yet. Add GEMINI_API_KEY to your backend .env file, then redeploy. Until then, use AI Overview and Reports for real store numbers.',
+                'response_text' => 'AI is not configured yet. Add AI API keys in your backend environment settings, then redeploy. Until then, use AI Overview and Reports for real store numbers.',
                 'intent' => $intent,
                 'data' => $context['summary'],
                 'metrics' => $context['periods']['today'] ?? null,
                 'recommendations' => [],
                 'table_data' => null,
                 'confidence' => 0,
-                'error' => 'GEMINI_API_KEY missing',
+                'error' => 'not_configured',
             ];
         }
 
         try {
-            $answer = $this->gemini->chat($message, $context);
+            $systemPrompt = $this->gemini->buildAdminSystemPrompt($context);
+            $answer = $this->llm->generate($systemPrompt, $message, 1024, 0.2, false);
 
             return [
                 'response_text' => $answer,
@@ -54,6 +56,19 @@ class AiService
                 'error' => null,
             ];
         } catch (RuntimeException $e) {
+            if (LlmGatewayService::isQuotaOrRateLimitError($e->getMessage())) {
+                return [
+                    'response_text' => LlmGatewayService::friendlyQuotaMessage($e->getMessage()),
+                    'intent' => $intent,
+                    'data' => $context['summary'],
+                    'metrics' => $context['periods']['today'] ?? null,
+                    'recommendations' => [],
+                    'table_data' => null,
+                    'confidence' => 0,
+                    'error' => 'rate_limit',
+                ];
+            }
+
             throw $e;
         }
     }

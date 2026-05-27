@@ -117,7 +117,7 @@
                 <i class="bi bi-shield-check-fill text-brand-red"></i> How it works
             </h2>
             <ul class="space-y-2 text-xs text-gray-600">
-                <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Powered by Google Gemini</li>
+                <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Powered by smart AI (live store data)</li>
                 <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Real numbers from your database</li>
                 <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Sinhala, Singlish, English all work</li>
                 <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-0.5 shrink-0"></i> Only your store products &amp; sales</li>
@@ -137,6 +137,22 @@
 
     const endpoint = @json(route('admin.ai.chat.api'));
     const CSRF_TOKEN = @json(csrf_token());
+
+    const ERROR_LABELS = {
+        rate_limit: 'Rate limit — try again shortly',
+        not_configured: 'AI not configured',
+        request_failed: 'Request failed',
+        'AI keys missing': 'AI not configured',
+    };
+
+    function formatErrorLabel(error) {
+        if (!error) return null;
+        if (ERROR_LABELS[error]) return ERROR_LABELS[error];
+        if (/gemini|GEMINI|generativelanguage|anthropic|claude/i.test(String(error))) {
+            return 'Something went wrong. Please try again.';
+        }
+        return error;
+    }
 
     function useSuggestion(text) {
         chatInputEl.value = text;
@@ -192,10 +208,13 @@
         bubble.innerHTML = `<div>${renderMarkdown(text || '')}</div>`;
 
         if (!isUser && error) {
-            const errDiv = document.createElement('div');
-            errDiv.className = 'mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-start gap-2';
-            errDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill mt-0.5"></i><span>' + escapeHtml(error) + '</span>';
-            bubble.appendChild(errDiv);
+            const label = formatErrorLabel(error);
+            if (label) {
+                const errDiv = document.createElement('div');
+                errDiv.className = 'mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-start gap-2';
+                errDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill mt-0.5"></i><span>' + escapeHtml(label) + '</span>';
+                bubble.appendChild(errDiv);
+            }
         }
 
         if (!isUser && recommendations && recommendations.length) {
@@ -342,7 +361,7 @@
             removeTyping();
             appendMessage({
                 role: 'assistant',
-                text: 'Could not reach the AI service. Check GEMINI_API_KEY in backend .env and redeploy.',
+                text: 'Could not reach the AI service. Check backend environment settings and redeploy.',
                 error: 'Connection failed.'
             });
         } finally {
