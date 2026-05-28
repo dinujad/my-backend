@@ -914,7 +914,13 @@
                         },
                         init() {
                             const form = this.$el.closest('form');
-                            if (form) form.addEventListener('submit', () => this.syncFileInput());
+                            if (!form) return;
+                            // form.submit() does NOT fire the 'submit' event — patch the method directly.
+                            const orig = form.submit.bind(form);
+                            const self = this;
+                            form.submit = function () { self.syncFileInput(); orig(); };
+                            // Also handle real submit event (e.g. Enter key)
+                            form.addEventListener('submit', () => this.syncFileInput());
                         }
                     }">
                         <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Upload New Gallery Images</label>
