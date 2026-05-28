@@ -31,7 +31,7 @@ class MediaController extends Controller
         $file   = $request->file('file');
         $folder = trim($request->input('folder', 'uploads'), '/');
         $disk   = ProductMediaPath::uploadDisk();
-        $path   = $file->storePublicly($folder, ['disk' => $disk]);
+        $path   = $file->store($folder, $disk);
 
         if (! $path || ! Storage::disk($disk)->exists($path)) {
             $message = 'Upload failed — file was not saved to storage.';

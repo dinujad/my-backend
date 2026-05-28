@@ -143,8 +143,9 @@ final class ProductMediaPath
     {
         $disk = self::uploadDisk();
 
-        // storePublicly ensures visibility=public; pass disk name directly.
-        $path = $file->storePublicly($folder, $disk);
+        // Use store() — cloud buckets (R2/S3/B2) are public at bucket level,
+        // so object-level ACL (storePublicly) is unnecessary and fails on R2.
+        $path = $file->store($folder, $disk);
 
         if (! $path) {
             throw new \RuntimeException("Failed to store upload in {$folder} on disk {$disk}.");
