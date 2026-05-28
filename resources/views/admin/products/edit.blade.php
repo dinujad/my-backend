@@ -801,9 +801,19 @@
 
             <!-- Media / Image -->
             @php
-                $adminProductMainImageUrl = $product->image && str_starts_with($product->image, 'http')
-                    ? $product->image
-                    : ($product->image ? '/' . ltrim($product->image, '/') : null);
+                $adminProductMainImageUrl = $product->image
+                    ? \App\Support\ProductMediaPath::publicUrl($product->image)
+                    : null;
+
+                $existingGalleryImagesForJs = collect($existingGalleryImagesForJs ?? [])
+                    ->map(function ($img) {
+                        $row = is_array($img) ? $img : (array) $img;
+                        $row['web_url'] = \App\Support\ProductMediaPath::publicUrl($row['file_path'] ?? '');
+
+                        return $row;
+                    })
+                    ->values()
+                    ->all();
             @endphp
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5">
                 <div>
@@ -854,7 +864,7 @@
                             <div class="rounded border border-gray-200 p-2 bg-gray-50">
                                 <div class="flex gap-3 items-start">
                                     <div class="relative group w-20 h-20 shrink-0 rounded border border-gray-200 overflow-hidden bg-white">
-                                        <img :src="img.file_path && img.file_path.startsWith('http') ? img.file_path : '/' + (img.file_path || '').replace(/^\/+/, '')" class="w-full h-full object-cover">
+                                        <img :src="img.web_url || ''" class="w-full h-full object-cover">
                                         <button type="button" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white" @click="existingImages.splice(i, 1)">
                                             <i class="bi bi-trash text-xl text-red-400"></i>
                                         </button>
