@@ -37,7 +37,7 @@
         <tbody class="divide-y divide-gray-50" id="products-homepage-table">
             @forelse($products as $product)
                 @php
-                    $imgPath = $product->image ? ProductMediaPath::normalize($product->image) : '';
+                    $imgPath = $product->image ? ProductMediaPath::publicUrl($product->image) : '';
                 @endphp
                 <tr class="hover:bg-gray-50" data-product-row="{{ $product->id }}"
                     data-update-url="{{ route('admin.products.homepage-flags', $product) }}">

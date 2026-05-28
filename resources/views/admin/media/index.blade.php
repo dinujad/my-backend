@@ -37,12 +37,12 @@
             <div class="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
                 @if(str_starts_with($file->mime_type ?? '', 'image/'))
                     @if($file->existsOnDisk())
-                        <img src="{{ $file->web_path }}" alt="{{ $file->alt_text }}"
+                        <img src="{{ $file->url }}" alt="{{ $file->alt_text }}"
                              class="w-full h-full object-cover" loading="lazy">
                     @else
-                        <div class="flex flex-col items-center justify-center gap-1 p-2 text-center text-amber-700">
+                        <div class="flex flex-col items-center justify-center gap-1 p-2 text-center text-amber-600">
                             <i class="bi bi-exclamation-triangle text-2xl"></i>
-                            <span class="text-[10px] font-medium leading-tight">File missing on server.<br>Run <code class="text-[9px]">storage:link</code></span>
+                            <span class="text-[10px] font-medium leading-tight">File not found.<br>Please re-upload.</span>
                         </div>
                     @endif
                 @else

@@ -38,29 +38,37 @@ class Media extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Browser path on this app, e.g. /storage/uploads/file.png */
-    public function getWebPathAttribute(): string
-    {
-        return ProductMediaPath::normalize('storage/'.ltrim((string) $this->path, '/'));
-    }
-
-    /** Full URL for copy/paste (uses current request host in admin, APP_URL in API). */
+    /**
+     * Full public URL — works for local disk (APP_URL/storage/...) and cloud (R2/S3/B2).
+     */
     public function getUrlAttribute(): string
     {
-        $webPath = $this->web_path;
-        if ($webPath === '') {
+        if (! filled($this->path)) {
             return '';
-        }
-
-        if (! app()->runningInConsole() && request()->hasHeader('Host')) {
-            return url($webPath);
         }
 
         return ProductMediaPath::publicUrl('storage/'.ltrim((string) $this->path, '/'));
     }
 
+    /**
+     * web_path kept for backwards compat; always returns the public URL.
+     */
+    public function getWebPathAttribute(): string
+    {
+        return $this->url;
+    }
+
+    /**
+     * Check whether the file actually exists on the configured upload disk (local or cloud).
+     */
     public function existsOnDisk(): bool
     {
-        return filled($this->path) && Storage::disk('public')->exists($this->path);
+        if (! filled($this->path)) {
+            return false;
+        }
+
+        $disk = ProductMediaPath::uploadDisk();
+
+        return Storage::disk($disk)->exists((string) $this->path);
     }
 }

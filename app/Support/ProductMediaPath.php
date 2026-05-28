@@ -142,7 +142,9 @@ final class ProductMediaPath
     public static function storeUpload(\Illuminate\Http\UploadedFile $file, string $folder): string
     {
         $disk = self::uploadDisk();
-        $path = $file->storePublicly($folder, ['disk' => $disk]);
+
+        // storePublicly ensures visibility=public; pass disk name directly.
+        $path = $file->storePublicly($folder, $disk);
 
         if (! $path) {
             throw new \RuntimeException("Failed to store upload in {$folder} on disk {$disk}.");

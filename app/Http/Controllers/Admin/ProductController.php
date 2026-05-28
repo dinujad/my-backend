@@ -152,11 +152,16 @@ class ProductController extends Controller
             'price_tiers' => $v->priceTiers->toArray(),
         ])->toArray());
 
-        // Pre-encode gallery images so @json() in Blade never sees nested single-quoted expressions.
+        // Pre-encode gallery images — include web_url so R2/S3/local all render correctly in Blade.
         $existingGalleryImagesForJs = $product->images
             ->whereNull('product_variation_id')
             ->values()
-            ->map(fn ($img) => ['id' => $img->id, 'file_path' => $img->file_path, 'alt_text' => $img->alt_text])
+            ->map(fn ($img) => [
+                'id'       => $img->id,
+                'file_path'=> $img->file_path,
+                'web_url'  => ProductMediaPath::publicUrl($img->file_path),
+                'alt_text' => $img->alt_text,
+            ])
             ->toArray();
 
         $additionalServicesForJs = $product->additionalServices

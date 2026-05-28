@@ -801,19 +801,10 @@
 
             <!-- Media / Image -->
             @php
+                // web_url is pre-computed in the controller (works for local, R2, S3)
                 $adminProductMainImageUrl = $product->image
                     ? \App\Support\ProductMediaPath::publicUrl($product->image)
                     : null;
-
-                $existingGalleryImagesForJs = collect($existingGalleryImagesForJs ?? [])
-                    ->map(function ($img) {
-                        $row = is_array($img) ? $img : (array) $img;
-                        $row['web_url'] = \App\Support\ProductMediaPath::publicUrl($row['file_path'] ?? '');
-
-                        return $row;
-                    })
-                    ->values()
-                    ->all();
             @endphp
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5">
                 <div>
