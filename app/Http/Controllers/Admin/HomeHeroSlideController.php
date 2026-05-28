@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HomeHeroSlide;
+use App\Support\ProductMediaPath;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -35,7 +36,7 @@ class HomeHeroSlideController extends Controller
         $data['is_active'] = $request->boolean('is_active');
 
         if ($request->hasFile('image')) {
-            $data['image'] = 'storage/'.$request->file('image')->store('hero-slides', 'public');
+            $data['image'] = 'storage/'.ProductMediaPath::storeUpload($request->file('image'), 'hero-slides');
         }
 
         HomeHeroSlide::create($data);
@@ -55,7 +56,7 @@ class HomeHeroSlideController extends Controller
 
         if ($request->hasFile('image')) {
             $hero_slide->deleteImageFile();
-            $data['image'] = 'storage/'.$request->file('image')->store('hero-slides', 'public');
+            $data['image'] = 'storage/'.ProductMediaPath::storeUpload($request->file('image'), 'hero-slides');
         }
 
         $hero_slide->update($data);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Support\ProductMediaPath;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,11 +28,12 @@ class MediaController extends Controller
             'folder' => 'nullable|string|max:100',
         ]);
 
-        $file = $request->file('file');
+        $file   = $request->file('file');
         $folder = trim($request->input('folder', 'uploads'), '/');
-        $path = $file->store($folder, 'public');
+        $disk   = ProductMediaPath::uploadDisk();
+        $path   = $file->storePublicly($folder, ['disk' => $disk]);
 
-        if (! Storage::disk('public')->exists($path)) {
+        if (! $path || ! Storage::disk($disk)->exists($path)) {
             $message = 'Upload failed — file was not saved to storage.';
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 500);
@@ -43,15 +45,15 @@ class MediaController extends Controller
         $dimensions = @getimagesize($file->getRealPath());
 
         $media = Media::create([
-            'user_id' => auth()->id(),
-            'path' => $path,
+            'user_id'  => auth()->id(),
+            'path'     => $path,
             'filename' => $file->getClientOriginalName(),
             'alt_text' => $request->input('alt_text', $file->getClientOriginalName()),
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'width' => $dimensions ? $dimensions[0] : null,
-            'height' => $dimensions ? $dimensions[1] : null,
-            'folder' => '/' . $folder,
+            'mime_type'=> $file->getMimeType(),
+            'size'     => $file->getSize(),
+            'width'    => $dimensions ? $dimensions[0] : null,
+            'height'   => $dimensions ? $dimensions[1] : null,
+            'folder'   => '/' . $folder,
         ]);
 
         if ($request->expectsJson()) {
@@ -71,7 +73,7 @@ class MediaController extends Controller
 
     public function destroy(Media $medium): RedirectResponse
     {
-        Storage::disk('public')->delete($medium->path);
+        Storage::disk(ProductMediaPath::uploadDisk())->delete($medium->path);
         $medium->delete();
 
         return redirect()->route('admin.media.index')->with('success', 'File deleted.');

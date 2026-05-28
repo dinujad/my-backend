@@ -9,6 +9,8 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Tag;
+use App\Support\ProductMediaPath;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,7 +83,7 @@ class ProductController extends Controller
         $product->paymentMethods()->sync($request->input('payment_method_ids', []));
 
         if ($request->hasFile('main_image')) {
-            $path = $request->file('main_image')->store('products', 'public');
+            $path = ProductMediaPath::storeUpload($request->file('main_image'), 'products');
             $product->update(['image' => 'storage/' . $path]);
         }
 
@@ -252,9 +254,9 @@ class ProductController extends Controller
 
         if ($request->hasFile('main_image')) {
             if ($product->image) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+                ProductMediaPath::deleteUpload($product->image);
             }
-            $path = $request->file('main_image')->store('products', 'public');
+            $path = ProductMediaPath::storeUpload($request->file('main_image'), 'products');
             $product->update(['image' => 'storage/' . $path]);
         }
 
@@ -272,9 +274,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
-        // Delete local images safely
         foreach ($product->images as $img) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $img->file_path));
+            ProductMediaPath::deleteUpload($img->file_path);
         }
         $product->delete();
 
@@ -293,7 +294,7 @@ class ProductController extends Controller
                                   ->get();
         
         foreach ($imagesToDelete as $img) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $img->file_path));
+            ProductMediaPath::deleteUpload($img->file_path);
             $img->delete();
         }
 
@@ -316,7 +317,7 @@ class ProductController extends Controller
         if ($request->hasFile('product_images')) {
             $newImageAlts = $request->input('product_image_alts', []);
             foreach ($request->file('product_images') as $index => $file) {
-                $path = $file->store('products', 'public');
+                $path = ProductMediaPath::storeUpload($file, 'products');
                 $product->images()->create([
                     'file_path' => 'storage/' . $path,
                     'type' => 'gallery',
@@ -365,7 +366,7 @@ class ProductController extends Controller
             $variations = $product->variations()->get();
             foreach ($variations as $var) {
                 foreach ($var->images as $img) {
-                    Storage::disk('public')->delete(str_replace('storage/', '', $img->file_path));
+                    ProductMediaPath::deleteUpload($img->file_path);
                 }
             }
             $product->variations()->delete();
@@ -400,9 +401,9 @@ class ProductController extends Controller
             $this->syncPriceTiers($product, $variation->id, $varTierEnabled, $varData['price_tiers'] ?? []);
             
             if(isset($varData['image_file']) && $varData['image_file'] instanceof \Illuminate\Http\UploadedFile) {
-                $path = $varData['image_file']->store('products/variations', 'public');
+                $path = ProductMediaPath::storeUpload($varData['image_file'], 'products/variations');
                 foreach ($variation->images as $img) {
-                     Storage::disk('public')->delete(str_replace('storage/', '', $img->file_path));
+                     ProductMediaPath::deleteUpload($img->file_path);
                      $img->delete();
                 }
                 $variation->images()->create([
@@ -416,7 +417,7 @@ class ProductController extends Controller
         $removedVars = $product->variations()->whereNotIn('id', $existingIds)->get();
         foreach($removedVars as $rv) {
             foreach ($rv->images as $img) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $img->file_path));
+                ProductMediaPath::deleteUpload($img->file_path);
                 $img->delete();
             }
             $rv->delete();
@@ -513,13 +514,26 @@ class ProductController extends Controller
             ? ($request->filled('offer_price') ? (float) $request->input('offer_price') : null)
             : $product->offer_price;
 
-        $product->update([
-            'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured,
-            'is_special_offer' => $isSpecial,
-            'is_on_sale' => $request->has('is_on_sale') ? $request->boolean('is_on_sale') : $product->is_on_sale,
-            'is_top_rated' => $request->has('is_top_rated') ? $request->boolean('is_top_rated') : $product->is_top_rated,
-            'offer_price' => $offerPrice,
-        ]);
+        try {
+            $product->update([
+                'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured,
+                'is_special_offer' => $isSpecial,
+                'is_on_sale' => $request->has('is_on_sale') ? $request->boolean('is_on_sale') : $product->is_on_sale,
+                'is_top_rated' => $request->has('is_top_rated') ? $request->boolean('is_top_rated') : $product->is_top_rated,
+                'offer_price' => $offerPrice,
+            ]);
+        } catch (QueryException $e) {
+            if (str_contains($e->getMessage(), 'is_special_offer')
+                || str_contains($e->getMessage(), 'is_on_sale')
+                || str_contains($e->getMessage(), 'is_top_rated')
+                || str_contains($e->getMessage(), 'offer_price')) {
+                return response()->json([
+                    'message' => 'Database needs an update. Redeploy the backend or run: php artisan migrate --force',
+                ], 503);
+            }
+
+            throw $e;
+        }
 
         return response()->json([
             'ok' => true,

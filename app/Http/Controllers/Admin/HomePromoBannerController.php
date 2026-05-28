@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HomePromoBanner;
+use App\Support\ProductMediaPath;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -36,7 +37,7 @@ class HomePromoBannerController extends Controller
         $data['has_discount'] = $request->boolean('has_discount');
 
         if ($request->hasFile('image')) {
-            $data['image'] = 'storage/'.$request->file('image')->store('promo-banners', 'public');
+            $data['image'] = 'storage/'.ProductMediaPath::storeUpload($request->file('image'), 'promo-banners');
         }
 
         HomePromoBanner::create($data);
@@ -57,7 +58,7 @@ class HomePromoBannerController extends Controller
 
         if ($request->hasFile('image')) {
             $promo_banner->deleteImageFile();
-            $data['image'] = 'storage/'.$request->file('image')->store('promo-banners', 'public');
+            $data['image'] = 'storage/'.ProductMediaPath::storeUpload($request->file('image'), 'promo-banners');
         }
 
         $promo_banner->update($data);

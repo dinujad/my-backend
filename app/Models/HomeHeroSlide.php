@@ -47,13 +47,10 @@ class HomeHeroSlide extends Model
 
     public function deleteImageFile(): void
     {
-        if (! $this->image || str_starts_with($this->image, 'http')) {
+        if (! $this->image) {
             return;
         }
 
-        $diskPath = preg_replace('#^storage/#', '', ltrim($this->image, '/')) ?? $this->image;
-        if (Storage::disk('public')->exists($diskPath)) {
-            Storage::disk('public')->delete($diskPath);
-        }
+        ProductMediaPath::deleteUpload($this->image);
     }
 }
