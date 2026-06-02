@@ -20,14 +20,50 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim((string) $request->query('q', ''));
+        $categoryId = (int) $request->query('category_id', 0);
+        $status = (string) $request->query('status', '');
+        $homeFlag = (string) $request->query('home_flag', '');
+
         $products = Product::with(['category', 'brand', 'variations'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('slug', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhereHas('category', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when($categoryId > 0, fn ($query) => $query->where('category_id', $categoryId))
+            ->when($status === 'active', fn ($query) => $query->where('is_active', true))
+            ->when($status === 'inactive', fn ($query) => $query->where('is_active', false))
+            ->when($homeFlag !== '', function ($query) use ($homeFlag) {
+                $map = [
+                    'special' => 'is_special_offer',
+                    'featured' => 'is_featured',
+                    'sale' => 'is_on_sale',
+                    'top' => 'is_top_rated',
+                ];
+                if (isset($map[$homeFlag])) {
+                    $query->where($map[$homeFlag], true);
+                }
+            })
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.products.index', compact('products'));
+        $categories = Category::active()->orderBy('name')->get(['id', 'name']);
+        $filters = [
+            'q' => $search,
+            'category_id' => $categoryId > 0 ? $categoryId : null,
+            'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
+            'home_flag' => in_array($homeFlag, ['special', 'featured', 'sale', 'top'], true) ? $homeFlag : '',
+        ];
+
+        return view('admin.products.index', compact('products', 'categories', 'filters'));
     }
 
     public function create(): View
