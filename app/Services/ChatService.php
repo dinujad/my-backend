@@ -6,6 +6,7 @@ use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatAssignment;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NewSupportChat;
@@ -200,5 +201,48 @@ class ChatService
             'message' => $message,
             'is_read' => false,
         ]);
+    }
+
+    private const PRESENCE_CACHE_KEY = 'chat_agent_presence';
+
+    /** Mark a chat staff member as online (heartbeat from admin live-chat page). */
+    public function registerAgentPresence(int $userId): void
+    {
+        $ttlSeconds = (int) config('chat.agent_presence_ttl', 120);
+        $presence = Cache::get(self::PRESENCE_CACHE_KEY, []);
+        if (! is_array($presence)) {
+            $presence = [];
+        }
+
+        $now = time();
+        $presence[$userId] = $now;
+        $presence = array_filter(
+            $presence,
+            static fn (int $seenAt): bool => ($now - $seenAt) < $ttlSeconds
+        );
+
+        Cache::put(self::PRESENCE_CACHE_KEY, $presence, $ttlSeconds + 60);
+    }
+
+    /** True when at least one chat staff member sent a heartbeat recently. */
+    public function hasOnlineAgents(): bool
+    {
+        return $this->countOnlineAgents() > 0;
+    }
+
+    public function countOnlineAgents(): int
+    {
+        $ttlSeconds = (int) config('chat.agent_presence_ttl', 120);
+        $presence = Cache::get(self::PRESENCE_CACHE_KEY, []);
+        if (! is_array($presence)) {
+            return 0;
+        }
+
+        $now = time();
+
+        return count(array_filter(
+            $presence,
+            static fn (int $seenAt): bool => ($now - $seenAt) < $ttlSeconds
+        ));
     }
 }

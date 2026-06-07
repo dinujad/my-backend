@@ -99,6 +99,17 @@ class LiveChatApiController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function agentStatus()
+    {
+        $online = $this->chatService->hasOnlineAgents();
+        $count = $this->chatService->countOnlineAgents();
+
+        return response()->json([
+            'agents_online' => $online,
+            'online_count' => $count,
+        ]);
+    }
+
     public function assistant(Request $request, CustomerShopAssistantService $assistant)
     {
         $data = $request->validate([

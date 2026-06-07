@@ -31,6 +31,7 @@ $publicRoutes = function () {
     Route::post('/checkout', [\App\Http\Controllers\Api\CheckoutApiController::class, 'store']);
 
     // Live Chat Widget Routes (assistant before {sessionId} to avoid route conflicts)
+    Route::get('/chat/agent-status', [\App\Http\Controllers\Api\LiveChatApiController::class, 'agentStatus']);
     Route::post('/chat/assistant', [\App\Http\Controllers\Api\LiveChatApiController::class, 'assistant']);
     Route::post('/chat/init', [\App\Http\Controllers\Api\LiveChatApiController::class, 'init']);
     Route::get('/chat/{sessionId}', [\App\Http\Controllers\Api\LiveChatApiController::class, 'getHistory']);
@@ -133,6 +134,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:sanctum', \App\Http\Middleware\ChatStaffMiddleware::class])->prefix('admin/chat')->group(function () {
+    Route::post('/presence', [\App\Http\Controllers\Api\AdminLiveChatController::class, 'presence']);
     Route::get('/', [\App\Http\Controllers\Api\AdminLiveChatController::class, 'index']);
     Route::get('/agents', [\App\Http\Controllers\Api\AdminLiveChatController::class, 'agents']);
     Route::post('/agents', [\App\Http\Controllers\Api\AdminLiveChatController::class, 'storeAgent']);

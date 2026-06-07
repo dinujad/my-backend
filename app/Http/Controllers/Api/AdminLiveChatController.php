@@ -137,6 +137,13 @@ class AdminLiveChatController extends Controller
         return response()->json(['success' => true]);
     }
     
+    public function presence(Request $request)
+    {
+        $this->chatService->registerAgentPresence((int) auth()->id());
+
+        return response()->json(['success' => true]);
+    }
+
     public function agents()
     {
         $agents = User::whereIn('role', ['admin', 'super_admin', 'chat_manager', 'chat_agent'])->get(['id', 'name', 'email', 'role']);
