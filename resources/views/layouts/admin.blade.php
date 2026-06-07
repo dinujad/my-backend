@@ -100,6 +100,14 @@
                     <i class="bi bi-truck text-lg w-6 text-center"></i>
                     <span>Shipping</span>
                 </a>
+                <a href="{{ route('admin.job-openings.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.job-openings.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
+                    <i class="bi bi-briefcase text-lg w-6 text-center"></i>
+                    <span>Job Openings</span>
+                </a>
+                <a href="{{ route('admin.job-applications.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.job-applications.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
+                    <i class="bi bi-person-lines-fill text-lg w-6 text-center"></i>
+                    <span>Job Applications</span>
+                </a>
                 <a href="{{ route('admin.quote-requests.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.quote-requests.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-file-earmark-text text-lg w-6 text-center"></i>
                     <span>Quote Requests</span>

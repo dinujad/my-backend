@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SeoController;
+use App\Http\Controllers\Admin\JobApplicationController;
+use App\Http\Controllers\Admin\JobOpeningController;
 use App\Http\Controllers\Admin\QuoteRequestController;
 use App\Http\Controllers\Admin\ShippingController;
 use App\Http\Controllers\Admin\PaymentMethodController;
@@ -86,6 +88,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Quote Requests
     Route::get('quote-requests', [QuoteRequestController::class, 'index'])->name('quote-requests.index');
+
+    // Careers
+    Route::resource('job-openings', JobOpeningController::class)->except(['show']);
+    Route::get('job-applications', [JobApplicationController::class, 'index'])->name('job-applications.index');
+    Route::get('job-applications/{job_application}', [JobApplicationController::class, 'show'])->name('job-applications.show');
+    Route::post('job-applications/{job_application}/status', [JobApplicationController::class, 'updateStatus'])->name('job-applications.status');
+
     Route::get('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'show'])->name('quote-requests.show');
     Route::post('quote-requests/{quoteRequest}/status', [QuoteRequestController::class, 'updateStatus'])->name('quote-requests.status');
     Route::post('quote-requests/{quoteRequest}/notes', [QuoteRequestController::class, 'updateNotes'])->name('quote-requests.notes');

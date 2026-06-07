@@ -44,6 +44,20 @@ class LlmGatewayService
         float $temperature = 0.2,
         bool $jsonMode = false
     ): string {
+        return $this->generateWithHistory($systemPrompt, $userMessage, [], $maxOutputTokens, $temperature, $jsonMode);
+    }
+
+    /**
+     * @param  list<array{role:string,content:string}>  $history  Previous turns to include as context.
+     */
+    public function generateWithHistory(
+        string $systemPrompt,
+        string $userMessage,
+        array $history = [],
+        int $maxOutputTokens = 1024,
+        float $temperature = 0.2,
+        bool $jsonMode = false
+    ): string {
         $order = $this->providerOrder();
         $lastError = null;
 
@@ -58,8 +72,8 @@ class LlmGatewayService
                         ? $this->gemini->generateJson($systemPrompt, $userMessage, $maxOutputTokens, $temperature)
                         : $this->gemini->generate($systemPrompt, $userMessage, $maxOutputTokens, $temperature, false),
                     'claude' => $jsonMode
-                        ? $this->claude->generateJson($systemPrompt, $userMessage, $maxOutputTokens, $temperature)
-                        : $this->claude->generate($systemPrompt, $userMessage, $maxOutputTokens, $temperature, false),
+                        ? $this->claude->generateJsonWithHistory($systemPrompt, $userMessage, $history, $maxOutputTokens, $temperature)
+                        : $this->claude->generateWithHistory($systemPrompt, $userMessage, $history, $maxOutputTokens, $temperature, false),
                     default => throw new RuntimeException("Unknown AI provider: {$provider}"),
                 };
             } catch (\Throwable $e) {
@@ -144,7 +158,17 @@ class LlmGatewayService
         int $maxOutputTokens = 768,
         float $temperature = 0.2
     ): string {
-        return $this->generate($systemPrompt, $userMessage, $maxOutputTokens, $temperature, true);
+        return $this->generateWithHistory($systemPrompt, $userMessage, [], $maxOutputTokens, $temperature, true);
+    }
+
+    public function generateJsonWithHistory(
+        string $systemPrompt,
+        string $userMessage,
+        array $history = [],
+        int $maxOutputTokens = 768,
+        float $temperature = 0.2
+    ): string {
+        return $this->generateWithHistory($systemPrompt, $userMessage, $history, $maxOutputTokens, $temperature, true);
     }
 
     /**

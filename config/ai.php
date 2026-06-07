@@ -10,7 +10,7 @@ return [
     | Example: gemini,claude  → try Gemini, then Claude (Anthropic).
     |
     */
-    'providers' => env('AI_LLM_PROVIDERS', 'gemini,claude'),
+    'providers' => env('AI_LLM_PROVIDERS', 'claude,gemini'),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,9 +39,24 @@ return [
     */
     'anthropic_api_key' => env('ANTHROPIC_API_KEY'),
 
-    'claude_model' => env('CLAUDE_MODEL', 'claude-3-5-haiku-20241022'),
+    /*
+    | Primary model (single). For multi-model fallback use CLAUDE_MODELS (comma-separated).
+    | Order: best → cheapest. Each is tried in sequence; on any error the next is used.
+    */
+    'claude_model'  => env('CLAUDE_MODEL', 'claude-sonnet-4-5'),
+    'claude_models' => env('CLAUDE_MODELS', 'claude-sonnet-4-5,claude-haiku-4-5,claude-sonnet-4-6,gpt-5.5,gpt-5.4,gemini-3.5-flash'),
 
+    /*
+    | Base URL for Claude. Set to an OpenAI-compatible proxy (e.g. api.ai.kodekloud.com/v1)
+    | or leave as api.anthropic.com for the native Anthropic API.
+    */
     'anthropic_base_url' => env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com'),
+
+    /*
+    | API format: "auto" (detected from base URL), "openai" (OpenAI-compatible /chat/completions),
+    | or "anthropic" (native /v1/messages). Set to "openai" for proxy endpoints.
+    */
+    'claude_api_format' => env('CLAUDE_API_FORMAT', 'auto'),
 
     'anthropic_version' => env('ANTHROPIC_VERSION', '2023-06-01'),
 
@@ -57,5 +72,8 @@ return [
     | Store name shown in AI prompts
     |--------------------------------------------------------------------------
     */
-    'store_name' => env('AI_STORE_NAME', 'Print Works.LK'),
+    'store_name'  => env('AI_STORE_NAME',  'Print Works.LK'),
+    'store_phone' => env('AI_STORE_PHONE', '070 666 8885'),
+    'store_email' => env('AI_STORE_EMAIL', 'sales@printworks.lk'),
+    'store_url'   => env('AI_STORE_URL',   'https://printworks.lk'),
 ];

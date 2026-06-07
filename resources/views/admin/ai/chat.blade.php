@@ -157,6 +157,7 @@
     function useSuggestion(text) {
         chatInputEl.value = text;
         chatInputEl.focus();
+        sendChat();
     }
 
     function escapeHtml(s) {

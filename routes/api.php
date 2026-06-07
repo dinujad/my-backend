@@ -22,6 +22,9 @@ $publicRoutes = function () {
     Route::get('/home-hero-slides', [\App\Http\Controllers\Api\HomeHeroSlideApiController::class, 'index']);
     Route::get('/home-promo-banners', [\App\Http\Controllers\Api\HomePromoBannerApiController::class, 'index']);
 
+    Route::get('/job-openings', [\App\Http\Controllers\Api\JobOpeningApiController::class, 'index']);
+    Route::post('/job-applications', [\App\Http\Controllers\Api\JobApplicationApiController::class, 'store']);
+
     Route::get('/categories',        [CategoryApiController::class, 'index']);
     Route::get('/categories/{slug}', [CategoryApiController::class, 'show']);
 
