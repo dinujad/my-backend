@@ -45,6 +45,7 @@ class UpdateProductRequest extends FormRequest
             
             // Pricing
             'price' => 'nullable|numeric|min:0',
+            'sale_price' => 'nullable|numeric|min:0',
             'compare_price' => 'nullable|numeric|min:0',
             'offer_price' => 'nullable|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',

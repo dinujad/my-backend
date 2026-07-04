@@ -81,6 +81,12 @@ class ProductController extends Controller
 
         unset($data['legacy_slugs']);
 
+        // Map admin form "Sale price" → DB column "compare_price"
+        if (array_key_exists('sale_price', $data)) {
+            $data['compare_price'] = $data['sale_price'];
+            unset($data['sale_price']);
+        }
+
         $data['slug'] = Product::slugForStorage($data['slug'] ?? null, $data['name']);
         $data['legacy_slugs'] = [];
 
@@ -231,6 +237,12 @@ class ProductController extends Controller
         $data = $request->validated();
 
         unset($data['legacy_slugs']);
+
+        // Map admin form "Sale price" → DB column "compare_price"
+        if (array_key_exists('sale_price', $data)) {
+            $data['compare_price'] = $data['sale_price'];
+            unset($data['sale_price']);
+        }
 
         $oldSlug = $product->slug;
         $newSlug = Product::slugForStorage($data['slug'] ?? null, $data['name']);

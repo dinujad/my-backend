@@ -1033,7 +1033,7 @@
             seoTitle: @json(old('seo_title', $product->seo_data['seo_title'] ?? '')),
             seoDesc: @json(old('seo_description', $product->seo_data['seo_description'] ?? '')),
             price: @json(old('price', $product->price)),
-            salePrice: @json(old('sale_price', $product->sale_price)),
+            salePrice: @json(old('sale_price', $product->compare_price)),
             costPrice: @json(old('cost_price', $product->cost_price)),
             manageStock: @json((bool) old('manage_stock', $product->manage_stock)),
             productType: @json(old('product_type', $product->product_type ?? 'simple')),

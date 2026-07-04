@@ -130,11 +130,14 @@ class ProductApiController extends Controller
         // Format LKR price like "Rs. 4,475.00"
         $fmt = fn (float $v) => 'Rs. '.number_format($v, 2);
 
+        // Sale-price logic: compare_price is the sale (lower) price the customer pays.
+        // When set and lower than regular price, show regular as struck-through "oldPrice"
+        // and use the sale price as the displayed "price".
         $oldPrice = null;
-        if ($p->is_on_sale && $compare && $compare > $price) {
-            $oldPrice = $fmt($compare);
-        } elseif ($compare && $compare > $price) {
-            $oldPrice = $fmt($compare);
+        $displayPrice = $price;
+        if ($compare && $compare > 0 && $compare < $price) {
+            $oldPrice = $fmt($price);
+            $displayPrice = $compare;
         }
 
         // Absolute URLs on API host (APP_URL) — all uploads served from api.printworks.lk/storage/…
@@ -171,8 +174,8 @@ class ProductApiController extends Controller
                 'average' => $avgRating !== null ? round((float) $avgRating, 1) : 0,
                 'count'   => $reviewCount,
             ],
-            'price'        => $listing['price'],
-            'numericPrice' => $price,
+            'price'        => $displayPrice !== $price ? $fmt($displayPrice) : $listing['price'],
+            'numericPrice' => $displayPrice,
             'priceRange'   => $listing['priceRange'],
             'priceMin'     => $listing['priceMin'],
             'priceMax'     => $listing['priceMax'],
