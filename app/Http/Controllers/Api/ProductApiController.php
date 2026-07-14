@@ -85,7 +85,7 @@ class ProductApiController extends Controller
 
         $query = Product::query()
             ->active()
-            ->with(['category', 'variations'])
+            ->with(['category', 'variations', 'images'])
             ->where(function ($builder) use ($q) {
                 $builder->where('name', 'like', "%{$q}%")
                     ->orWhere('sku', 'like', "%{$q}%")
@@ -106,14 +106,19 @@ class ProductApiController extends Controller
             ->get()
             ->map(function (Product $p) {
                 $listing = ProductListingPrice::resolve($p);
-                $image = $p->image ? ProductMediaPath::normalize($p->image) : '';
+
+                $imagePath = $p->image;
+                if (! filled($imagePath) && $p->relationLoaded('images')) {
+                    $firstGallery = $p->images->whereNull('product_variation_id')->sortBy('sort_order')->first();
+                    $imagePath = $firstGallery?->file_path;
+                }
 
                 return [
                     'id' => $p->id,
                     'name' => $p->name,
                     'slug' => $p->slug,
                     'sku' => $p->sku ?? 'PW-'.str_pad((string) $p->id, 4, '0', STR_PAD_LEFT),
-                    'image' => $image,
+                    'image' => filled($imagePath) ? ProductMediaPath::publicUrl($imagePath) : '',
                     'price' => $listing['price'],
                     'category' => $p->category?->name ?? '',
                 ];

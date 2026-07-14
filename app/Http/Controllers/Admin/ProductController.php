@@ -120,7 +120,7 @@ class ProductController extends Controller
             $data['attributes_config'] = json_decode($request->input('attributes_config'), true);
         }
 
-        $data['page_settings'] = $request->input('page_settings', []);
+        $data['page_settings'] = $this->normalizePageSettings($request->input('page_settings', []));
         $data['customization_settings'] = $this->normalizeCustomizationSettings($request->input('customization_settings', []));
 
         $this->guardSpecialOfferLimit($data['is_special_offer'] ?? false);
@@ -169,8 +169,10 @@ class ProductController extends Controller
             ->all();
 
         // Precompute for Blade: @json() breaks on nested single-quoted strings (Blade compiler bug).
-        $defaultPageSettings = ['layout_style' => 'default', 'gallery_layout' => 'vertical'];
-        $pageSettingsForJs = old('page_settings', $product->page_settings ?? $defaultPageSettings);
+        // Cast hide_* to real booleans — string "0" is truthy in JS and was incorrectly ticking all boxes.
+        $pageSettingsForJs = $this->pageSettingsForAlpine(
+            old('page_settings', $product->page_settings ?? [])
+        );
 
         $defaultCustomizationSettings = [
             'enabled' => false,
@@ -295,7 +297,7 @@ class ProductController extends Controller
             $data['attributes_config'] = json_decode($request->input('attributes_config'), true);
         }
 
-        $data['page_settings'] = $request->input('page_settings', []);
+        $data['page_settings'] = $this->normalizePageSettings($request->input('page_settings', []));
         $rawCustomization = $request->input('customization_settings', []);
         $data['customization_settings'] = $this->normalizeCustomizationSettings($rawCustomization);
 
@@ -526,6 +528,70 @@ class ProductController extends Controller
                 'sort_order' => $index,
             ]);
         }
+    }
+
+    /**
+     * Normalize page display settings from checkbox + hidden inputs.
+     * Hide flags default to off (show content) unless explicitly checked.
+     */
+    private function normalizePageSettings(mixed $pageSettings): array
+    {
+        if (! is_array($pageSettings)) {
+            $pageSettings = [];
+        }
+
+        $normalizeBool = function (mixed $v): bool {
+            if (is_array($v)) {
+                $v = end($v);
+            }
+            // Strict: only true/"1"/1 count as hide-on. String "0" must be false.
+            return $v === true || $v === 1 || $v === '1';
+        };
+
+        $hideKeys = [
+            'hide_short_desc',
+            'hide_full_desc',
+            'hide_tier_pricing',
+            'hide_stock',
+            'hide_sku',
+            'hide_categories',
+            'hide_related',
+        ];
+
+        $out = [
+            'layout_style' => (string) ($pageSettings['layout_style'] ?? 'default'),
+            'gallery_layout' => (string) ($pageSettings['gallery_layout'] ?? 'vertical'),
+        ];
+
+        foreach ($hideKeys as $key) {
+            // Store as "0"/"1" for frontend checks that use == 1 / != 1
+            $out[$key] = $normalizeBool($pageSettings[$key] ?? false) ? '1' : '0';
+        }
+
+        return $out;
+    }
+
+    /**
+     * Page settings for Alpine x-model checkboxes (must be real booleans, not "0"/"1" strings).
+     *
+     * @param  mixed  $pageSettings
+     * @return array<string, mixed>
+     */
+    private function pageSettingsForAlpine(mixed $pageSettings): array
+    {
+        $normalized = $this->normalizePageSettings($pageSettings);
+
+        return [
+            'hide_short_desc' => $normalized['hide_short_desc'] === '1',
+            'hide_full_desc' => $normalized['hide_full_desc'] === '1',
+            'hide_tier_pricing' => $normalized['hide_tier_pricing'] === '1',
+            'hide_stock' => $normalized['hide_stock'] === '1',
+            'hide_sku' => $normalized['hide_sku'] === '1',
+            'hide_categories' => $normalized['hide_categories'] === '1',
+            'hide_related' => $normalized['hide_related'] === '1',
+            'layout_style' => $normalized['layout_style'],
+            'gallery_layout' => $normalized['gallery_layout'],
+        ];
     }
 
     /**

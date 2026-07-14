@@ -507,7 +507,7 @@
                                     ]">
                                         <label class="flex items-center gap-2 cursor-pointer text-gray-700 text-sm">
                                             <input type="hidden" :name="`page_settings[${setting.key}]`" value="0">
-                                            <input type="checkbox" :name="`page_settings[${setting.key}]`" x-model="pageSettings[setting.key]" value="1" class="rounded border-gray-300 text-brand-red focus:ring-brand-red"> 
+                                            <input type="checkbox" :name="`page_settings[${setting.key}]`" value="1" x-model="pageSettings[setting.key]" class="rounded border-gray-300 text-brand-red focus:ring-brand-red">
                                             <span x-text="setting.label"></span>
                                         </label>
                                     </template>
