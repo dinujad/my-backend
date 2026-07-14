@@ -104,6 +104,11 @@ class ProductController extends Controller
             }
         }
 
+        $data['min_purchase'] = max(1, (int) ($data['min_purchase'] ?? 1));
+        if (array_key_exists('max_purchase', $data) && ($data['max_purchase'] === null || $data['max_purchase'] === '')) {
+            $data['max_purchase'] = null;
+        }
+
         $data['seo_data'] = [
             'seo_title' => $request->input('seo_title'),
             'seo_description' => $request->input('seo_description'),
@@ -272,6 +277,11 @@ class ProductController extends Controller
         ];
         foreach ($booleans as $field) {
             $data[$field] = $request->boolean($field);
+        }
+
+        $data['min_purchase'] = max(1, (int) ($data['min_purchase'] ?? $product->min_purchase ?? 1));
+        if (array_key_exists('max_purchase', $data) && ($data['max_purchase'] === null || $data['max_purchase'] === '')) {
+            $data['max_purchase'] = null;
         }
 
         $data['seo_data'] = [

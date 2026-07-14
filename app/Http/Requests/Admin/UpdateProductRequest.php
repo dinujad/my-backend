@@ -59,7 +59,7 @@ class UpdateProductRequest extends FormRequest
             'stock_status' => 'required|in:instock,outofstock,onbackorder,preorder',
             'allow_backorders' => 'boolean',
             'sold_individually' => 'boolean',
-            'min_purchase' => 'integer|min:1',
+            'min_purchase' => 'nullable|integer|min:1',
             'max_purchase' => 'nullable|integer|min:1',
             
             // Shipping

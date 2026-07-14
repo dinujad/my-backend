@@ -172,6 +172,8 @@ class ProductApiController extends Controller
             'stock_quantity' => $p->stock_quantity,
             'stock_status' => $p->stock_status ?? 'instock',
             'allow_backorders' => (bool) $p->allow_backorders,
+            'min_purchase' => max(1, (int) ($p->min_purchase ?? 1)),
+            'max_purchase' => $p->max_purchase !== null ? max(1, (int) $p->max_purchase) : null,
             'review_summary' => [
                 'average' => $avgRating !== null ? round((float) $avgRating, 1) : 0,
                 'count'   => $reviewCount,

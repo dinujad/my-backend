@@ -188,6 +188,21 @@
                                         <option value="preorder" {{ old('stock_status', $product->stock_status) === 'preorder' ? 'selected' : '' }}>Pre-order</option>
                                     </select>
                                 </div>
+                                <hr class="border-gray-100 !my-2">
+                                <div class="flex items-center gap-4">
+                                    <label class="w-1/3 text-sm text-gray-600 font-medium">Minimum order qty</label>
+                                    <div class="w-2/3">
+                                        <input type="number" name="min_purchase" min="1" value="{{ old('min_purchase', $product->min_purchase ?? 1) }}" class="w-full border border-gray-200 rounded-md px-3 py-1.5 focus:border-brand-red outline-none" placeholder="e.g. 10">
+                                        <p class="mt-1 text-[11px] text-gray-400">Customer cannot order fewer than this quantity on the product page.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <label class="w-1/3 text-sm text-gray-600 font-medium">Maximum order qty</label>
+                                    <div class="w-2/3">
+                                        <input type="number" name="max_purchase" min="1" value="{{ old('max_purchase', $product->max_purchase) }}" class="w-full border border-gray-200 rounded-md px-3 py-1.5 focus:border-brand-red outline-none" placeholder="Optional">
+                                        <p class="mt-1 text-[11px] text-gray-400">Leave empty for no maximum.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
