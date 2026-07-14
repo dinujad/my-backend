@@ -96,7 +96,12 @@ class ProductController extends Controller
             'is_special_offer', 'is_on_sale', 'is_top_rated',
         ];
         foreach ($booleans as $field) {
-            $data[$field] = $request->boolean($field);
+            if ($field === 'is_active' && ! $request->has('is_active')) {
+                // Create form historically omitted this checkbox — default published products to active.
+                $data[$field] = ($data['status'] ?? 'published') === 'published';
+            } else {
+                $data[$field] = $request->boolean($field);
+            }
         }
 
         $data['seo_data'] = [

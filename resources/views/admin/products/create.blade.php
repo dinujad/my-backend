@@ -705,6 +705,13 @@
                             <option value="hidden">Hidden</option>
                         </select>
                     </div>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="checkbox" name="is_active" value="1" checked class="text-brand-red border-gray-300 rounded focus:ring-brand-red">
+                            Active (show on website)
+                        </label>
+                    </div>
                 </div>
 
                 <div class="pt-2 border-t border-gray-100">

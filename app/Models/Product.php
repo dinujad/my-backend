@@ -105,6 +105,12 @@ class Product extends Model
         return $query->where('is_active', true)->where('status', 'published');
     }
 
+    /** Products that should appear on catalog / all-products listings (not search-only or hidden). */
+    public function scopeVisibleInCatalog($query)
+    {
+        return $query->whereIn('visibility', ['shop_search', 'shop_only']);
+    }
+
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);

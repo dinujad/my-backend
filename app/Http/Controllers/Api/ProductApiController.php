@@ -19,6 +19,7 @@ class ProductApiController extends Controller
     {
         $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices', 'variations'])
             ->active()
+            ->visibleInCatalog()
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
@@ -58,6 +59,7 @@ class ProductApiController extends Controller
     {
         $products = Product::with(['category', 'images', 'priceTiers', 'additionalServices', 'variations'])
             ->active()
+            ->visibleInCatalog()
             ->whereHas('category', fn($q) => $q->where('slug', $categorySlug))
             ->orderBy('sort_order')
             ->orderBy('name')
