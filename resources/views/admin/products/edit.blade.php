@@ -281,6 +281,7 @@
                                         <option value="Color">Color</option>
                                         <option value="Material">Material</option>
                                     </select>
+                                    <input type="text" x-show="!newAttributeName" x-model="customAttributeName" x-ref="customAttributeName" @keydown.enter.prevent="addAttribute" placeholder="Attribute name" class="w-48 border border-gray-200 rounded-md px-3 py-1.5 focus:border-brand-red outline-none text-sm">
                                     <button type="button" @click="addAttribute" class="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition border border-gray-200">
                                         Add
                                     </button>
@@ -1068,17 +1069,57 @@
             additionalServices: @json(old('additional_services', $additionalServicesForJs ?? [])),
             
             // Attributes & Variations
-            attributes: @json(old('attributes_config', $product->attributes_config ?? [])),
+            attributes: [],
             newAttributeName: '',
+            customAttributeName: '',
             variations: @json($variationsForJs),
             isGeneratingVariations: false,
+
+            init() {
+                const rawAttributes = @json(old('attributes_config', $product->attributes_config ?? []));
+                this.attributes = this.normalizeAttributes(rawAttributes);
+            },
+
+            normalizeAttributes(raw) {
+                let list = raw;
+                if (typeof list === 'string') {
+                    try { list = JSON.parse(list); } catch (e) { list = []; }
+                }
+                if (!Array.isArray(list)) return [];
+                return list.map((attr) => this.normalizeAttribute(attr));
+            },
+
+            normalizeAttribute(attr) {
+                const row = attr && typeof attr === 'object' ? attr : {};
+                let valuesStr = typeof row.valuesStr === 'string' ? row.valuesStr : '';
+                if (!valuesStr.trim()) {
+                    if (Array.isArray(row.values)) {
+                        valuesStr = row.values.map((value) => String(value ?? '').trim()).filter(Boolean).join('|');
+                    } else if (typeof row.values === 'string') {
+                        valuesStr = row.values;
+                    }
+                }
+                const flag = row.used_for_variations;
+                return {
+                    name: row.name == null ? '' : String(row.name),
+                    valuesStr,
+                    used_for_variations: flag === true || flag === 1 || flag === '1' || flag === 'true',
+                };
+            },
+
+            attributeValues(attr) {
+                return String(attr && attr.valuesStr ? attr.valuesStr : '')
+                    .split('|')
+                    .map((value) => value.trim())
+                    .filter((value) => value.length > 0);
+            },
             
             // Tags
             newTag: '',
             selectedTags: @json($product->tags),
             
             get variationsEnabled() {
-                return this.attributes.some(a => a.used_for_variations && (a.valuesStr || '').trim() !== '');
+                return this.attributes.some(a => a.used_for_variations && this.attributeValues(a).length > 0);
             },
             
             generateSlug() {
@@ -1097,12 +1138,16 @@
             },
             
             addAttribute() {
-                let name = this.newAttributeName;
-                if(!name) { name = prompt('Enter custom attribute name (e.g. Material):'); }
-                if(name && !this.attributes.find(a => a.name === name)) {
+                const name = String(this.newAttributeName || this.customAttributeName || '').trim();
+                if (!name) {
+                    this.$nextTick(() => this.$refs.customAttributeName && this.$refs.customAttributeName.focus());
+                    return;
+                }
+                if (!this.attributes.find(a => a.name === name)) {
                     this.attributes.push({ name: name, valuesStr: '', used_for_variations: false });
                 }
                 this.newAttributeName = '';
+                this.customAttributeName = '';
             },
             
             removeAttribute(index) {
@@ -1115,17 +1160,14 @@
             },
             
             async generateVariations() {
-                if(!this.variationsEnabled) return;
-                
+                const validAttributes = this.attributes
+                    .filter(a => a.used_for_variations)
+                    .map(a => ({ name: a.name, values: this.attributeValues(a) }))
+                    .filter(a => a.name && a.values.length > 0);
+
+                if (validAttributes.length === 0) return;
+
                 this.isGeneratingVariations = true;
-                
-                let validAttributes = this.attributes
-                    .filter(a => a.used_for_variations && a.valuesStr.trim().length > 0)
-                    .map(a => ({
-                        name: a.name,
-                        values: a.valuesStr.split('|').map(v => v.trim()).filter(v => v)
-                    }));
-                
                 try {
                     const response = await fetch('{{ route('admin.products.ajax.generate-variations') }}', {
                         method: 'POST',
