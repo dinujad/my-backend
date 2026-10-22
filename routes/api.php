@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CategoryApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\ProductReviewApiController;
+use App\Http\Controllers\Api\SeoSettingApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,8 @@ $publicRoutes = function () {
 
     Route::get('/categories',        [CategoryApiController::class, 'index']);
     Route::get('/categories/{slug}', [CategoryApiController::class, 'show']);
+
+    Route::get('/seo-settings', [SeoSettingApiController::class, 'show']);
 
     Route::post('/checkout', [\App\Http\Controllers\Api\CheckoutApiController::class, 'store']);
 
