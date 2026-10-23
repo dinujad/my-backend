@@ -57,6 +57,8 @@
                   <i class="bi bi-cash-coin text-lg"></i>
                 @elseif($method->code === 'payhere')
                   <i class="bi bi-credit-card-2-front text-lg"></i>
+                @elseif($method->code === 'onepay')
+                  <i class="bi bi-credit-card text-lg"></i>
                 @else
                   <i class="bi bi-wallet2 text-lg"></i>
                 @endif
@@ -101,7 +103,7 @@
                  class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
                 <i class="bi bi-pencil"></i> Edit
               </a>
-              @if(! in_array($method->code, ['cod', 'payhere']))
+              @if(! in_array($method->code, ['cod', 'payhere', 'onepay']))
               <form action="{{ route('admin.payments.destroy', $method) }}" method="POST"
                     onsubmit="return confirm('Delete {{ $method->name }}?')">
                 @csrf @method('DELETE')
@@ -118,6 +120,24 @@
       </tbody>
     </table>
     @endif
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-shield-lock text-brand-red text-lg"></i>
+        <h2 class="font-bold text-gray-800">OnePay</h2>
+      </div>
+      <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold {{ $onepayConfigured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
+        {{ $onepayConfigured ? 'Configured' : 'Missing environment variables' }}
+      </span>
+    </div>
+    <div class="p-6 space-y-3 text-sm text-gray-600">
+      <p>Live gateway only. App ID, app token, hash salt, and callback token are read from the server environment. They are not stored in this form.</p>
+      <p class="text-xs font-semibold text-gray-500">Callback URL already set in the OnePay app</p>
+      <p class="font-mono text-gray-900 select-all">{{ rtrim(config('app.url'), '/') }}/api/onepay/callback</p>
+      <p class="text-xs text-gray-500">ONEPAY_APP_ID, ONEPAY_APP_TOKEN, ONEPAY_HASH_SALT, ONEPAY_CALLBACK_TOKEN, FRONTEND_URL</p>
+    </div>
   </div>
 
   {{-- PayHere Settings --}}

@@ -19,8 +19,12 @@ class PaymentMethodController extends Controller
     {
         $methods  = PaymentMethod::orderBy('sort_order')->get();
         $settings = PayhereSettings::instance();
+        $onepayConfigured = filled(config('onepay.app_id'))
+            && filled(config('onepay.app_token'))
+            && filled(config('onepay.hash_salt'))
+            && filled(config('onepay.callback_token'));
 
-        return view('admin.payments.index', compact('methods', 'settings'));
+        return view('admin.payments.index', compact('methods', 'settings', 'onepayConfigured'));
     }
 
     public function create()
@@ -71,7 +75,7 @@ class PaymentMethodController extends Controller
     public function destroy(PaymentMethod $payment)
     {
         // Protect built-in methods
-        if (in_array($payment->code, ['cod', 'payhere'])) {
+        if (in_array($payment->code, ['cod', 'payhere', 'onepay'])) {
             return redirect()->route('admin.payments.index')
                 ->with('error', 'Cannot delete default payment methods.');
         }

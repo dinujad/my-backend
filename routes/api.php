@@ -60,6 +60,12 @@ $publicRoutes = function () {
 
     // PayHere initiate (needs order_number)
     Route::post('/payments/payhere/initiate', [\App\Http\Controllers\Api\PayhereController::class, 'initiate']);
+
+    // OnePay live checkout (same-window redirect)
+    Route::post('/payments/onepay/initiate', [\App\Http\Controllers\Api\OnepayController::class, 'initiate']);
+
+    // Storefront return page polls this. OnePay orders are confirmed with the status API.
+    Route::get('/orders/{orderNumber}/payment-status', [\App\Http\Controllers\Api\OnepayController::class, 'paymentStatus']);
 };
 
 // Register public routes both with and without /v1 prefix for backwards compatibility
@@ -107,6 +113,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
 |--------------------------------------------------------------------------
 */
 Route::post('/payments/payhere/notify', [\App\Http\Controllers\Api\PayhereController::class, 'notify'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+Route::post('/onepay/callback', [\App\Http\Controllers\Api\OnepayController::class, 'callback'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 /*

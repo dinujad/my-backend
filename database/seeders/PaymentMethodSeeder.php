@@ -27,6 +27,14 @@ class PaymentMethodSeeder extends Seeder
                 'is_active'   => true,
                 'sort_order'  => 2,
             ],
+            [
+                'code'        => 'onepay',
+                'name'        => 'Pay Online (OnePay)',
+                'description' => 'Card and local wallets on the secure OnePay page. Visa, Mastercard, Amex, FriMi, HelaPay, QPlus, and Google Pay.',
+                'type'        => 'online',
+                'is_active'   => true,
+                'sort_order'  => 3,
+            ],
         ];
 
         foreach ($methods as $method) {
@@ -36,6 +44,6 @@ class PaymentMethodSeeder extends Seeder
         // Create default PayHere settings row (sandbox mode, no credentials)
         PayhereSettings::firstOrCreate([], ['mode' => 'sandbox']);
 
-        $this->command->info('Default payment methods (COD + PayHere) seeded.');
+        $this->command->info('Default payment methods (COD, PayHere, OnePay) seeded.');
     }
 }
