@@ -18,7 +18,8 @@ class PayzyServiceTest extends TestCase
         $string = PayzyService::requestString($fields);
 
         $this->assertStringStartsWith('x_test_mode=v,x_shopid=v,x_amount=v,', $string);
-        $this->assertStringContainsString('x_version=1.0,signed_field_names='.$signed, $string);
+        $this->assertStringContainsString('x_version1.0,signed_field_names='.$signed, $string);
+        $this->assertStringNotContainsString('x_version=1.0', $string);
     }
 
     public function test_signature_is_hmac_sha256_base64(): void

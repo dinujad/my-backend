@@ -66,6 +66,12 @@ class PayzyService
         $signed = implode(',', [...self::REQUEST_FIELDS, 'signed_field_names']);
         $parts = [];
         foreach (self::REQUEST_FIELDS as $name) {
+            // Payzy's sample signs `x_version` + value with no equals sign.
+            // A corrected `x_version=1.0` fails their check and the payment page shows Rs 0.00.
+            if ($name === 'x_version') {
+                $parts[] = $name.($fields[$name] ?? '');
+                continue;
+            }
             $parts[] = $name.'='.($fields[$name] ?? '');
         }
         $parts[] = 'signed_field_names='.$signed;
