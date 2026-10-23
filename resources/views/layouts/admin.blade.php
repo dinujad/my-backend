@@ -68,6 +68,10 @@
                     <i class="bi bi-search text-lg w-6 text-center"></i>
                     <span>SEO Settings</span>
                 </a>
+                <a href="{{ route('admin.home-popup.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.home-popup.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
+                    <i class="bi bi-window-stack text-lg w-6 text-center"></i>
+                    <span>Home Popup</span>
+                </a>
                 <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.reports.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-graph-up text-lg w-6 text-center"></i>
                     <span>Reports</span>

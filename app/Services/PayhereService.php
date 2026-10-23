@@ -146,6 +146,7 @@ class PayhereService
             ]);
 
             Log::info("PayHere: Order [{$orderNumber}] marked paid.", ['payment_id' => $payment->id]);
+            app(OrderConfirmationNotifier::class)->send($order->fresh() ?? $order);
         } else {
             // FAILED / PENDING / CANCELLED
             $statusMap = [

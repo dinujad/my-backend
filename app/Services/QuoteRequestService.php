@@ -121,10 +121,13 @@ class QuoteRequestService
             ->pluck('email')
             ->toArray();
 
-        $notifyEmail = env('CHAT_NOTIFICATION_EMAIL');
-        if ($notifyEmail && !in_array($notifyEmail, $adminEmails, true)) {
-            $adminEmails[] = $notifyEmail;
+        foreach ([env('CHAT_NOTIFICATION_EMAIL'), config('app.admin_notify_email')] as $notifyEmail) {
+            if ($notifyEmail && ! in_array($notifyEmail, $adminEmails, true)) {
+                $adminEmails[] = $notifyEmail;
+            }
         }
+
+        $request->loadMissing('items');
 
         if (!empty($adminEmails)) {
             try {

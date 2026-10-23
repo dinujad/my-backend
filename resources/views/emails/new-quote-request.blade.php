@@ -37,6 +37,9 @@
       @endif
       <tr><td>Email</td><td>{{ $quoteRequest->email }}</td></tr>
       <tr><td>Phone</td><td>{{ $quoteRequest->phone }}</td></tr>
+      @if($quoteRequest->address)
+      <tr><td>Address</td><td>{{ $quoteRequest->address }}</td></tr>
+      @endif
       <tr><td>Contact Preference</td><td>{{ ucfirst($quoteRequest->preferred_contact) }}</td></tr>
       <tr><td>Urgency</td><td>{{ ucfirst($quoteRequest->urgency ?? 'normal') }}</td></tr>
       @if($quoteRequest->deadline)
@@ -72,7 +75,7 @@
     </div>
     @endif
 
-    <a href="{{ config('app.frontend_url') }}/admin/quotes/{{ $quoteRequest->id }}" class="btn">
+    <a href="{{ rtrim(config('app.url'), '/') }}/admin/quote-requests/{{ $quoteRequest->id }}" class="btn">
       Review Quote Request →
     </a>
   </div>

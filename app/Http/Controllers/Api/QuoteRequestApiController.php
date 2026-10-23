@@ -74,7 +74,7 @@ class QuoteRequestApiController extends Controller
                 $query->where('name', 'like', "%{$q}%")
                       ->orWhere('sku', 'like', "%{$q}%");
             })
-            ->with('variations')
+            ->with(['variations.images', 'images'])
             ->select('id', 'name', 'slug', 'sku', 'image', 'price')
             ->limit(10)
             ->get()
@@ -83,12 +83,13 @@ class QuoteRequestApiController extends Controller
                 'name'        => $p->name,
                 'slug'        => $p->slug,
                 'sku'         => $p->sku,
-                'image'       => $p->image,
+                'image'       => $this->quoteImageUrl($p),
                 'price'       => $p->price,
                 'variations'  => $p->variations->map(fn ($v) => [
                     'id'         => $v->id,
                     'sku'        => $v->sku,
                     'attributes' => $v->attributes,
+                    'image'      => $this->variationImageUrl($v) ?: $this->quoteImageUrl($p),
                 ]),
             ]);
 
@@ -110,5 +111,56 @@ class QuoteRequestApiController extends Controller
         }
 
         return response()->json($quotation);
+    }
+
+    /**
+     * Same public URL the storefront catalog uses (API host + /storage/…).
+     * Falls back to the first product photo when the main image column is empty.
+     */
+    private function quoteImageUrl(Product $product): string
+    {
+        if (filled($product->image)) {
+            return $this->publicImageUrl((string) $product->image);
+        }
+
+        $file = $product->relationLoaded('images')
+            ? $product->images->whereNull('product_variation_id')->sortBy('sort_order')->first()?->file_path
+            : null;
+
+        return filled($file) ? $this->publicImageUrl((string) $file) : '';
+    }
+
+    private function variationImageUrl($variation): string
+    {
+        $file = $variation->relationLoaded('images')
+            ? $variation->images->sortBy('sort_order')->first()?->file_path
+            : null;
+
+        if (filled($file)) {
+            return $this->publicImageUrl((string) $file);
+        }
+
+        return filled($variation->image) ? $this->publicImageUrl((string) $variation->image) : '';
+    }
+
+    private function publicImageUrl(string $path): string
+    {
+        $path = str_replace('\\', '/', trim($path));
+        if ($path === '') {
+            return '';
+        }
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        $trim = ltrim($path, '/');
+        if (str_starts_with($trim, 'images/')) {
+            return '/' . $trim;
+        }
+        if (str_starts_with($trim, 'storage/')) {
+            return asset($trim);
+        }
+
+        return asset('storage/' . $trim);
     }
 }

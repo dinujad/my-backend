@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CategoryApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\ProductReviewApiController;
+use App\Http\Controllers\Api\HomePopupApiController;
 use App\Http\Controllers\Api\SeoSettingApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,7 @@ $publicRoutes = function () {
     Route::get('/categories/{slug}', [CategoryApiController::class, 'show']);
 
     Route::get('/seo-settings', [SeoSettingApiController::class, 'show']);
+    Route::get('/home-popup', [HomePopupApiController::class, 'show']);
 
     Route::post('/checkout', [\App\Http\Controllers\Api\CheckoutApiController::class, 'store']);
 
@@ -63,6 +65,8 @@ $publicRoutes = function () {
 
     // OnePay live checkout (same-window redirect)
     Route::post('/payments/onepay/initiate', [\App\Http\Controllers\Api\OnepayController::class, 'initiate']);
+    Route::post('/payments/payzy/initiate', [\App\Http\Controllers\Api\PayzyController::class, 'initiate']);
+    Route::post('/payments/payzy/confirm', [\App\Http\Controllers\Api\PayzyController::class, 'confirm']);
 
     // Storefront return page polls this. OnePay orders are confirmed with the status API.
     Route::get('/orders/{orderNumber}/payment-status', [\App\Http\Controllers\Api\OnepayController::class, 'paymentStatus']);

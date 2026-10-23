@@ -273,6 +273,8 @@ class OnepayService
             'customer_notified' => false,
         ]);
 
+        app(OrderConfirmationNotifier::class)->send($order->fresh() ?? $order);
+
         Log::info('OnePay order marked paid', ['order' => $order->order_number]);
 
         return true;

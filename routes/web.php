@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\HomePopupController;
 use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\Admin\JobApplicationController;
 use App\Http\Controllers\Admin\JobOpeningController;
@@ -82,6 +83,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // SEO Settings
     Route::get('seo', [SeoController::class, 'index'])->name('seo.index');
     Route::put('seo', [SeoController::class, 'update'])->name('seo.update');
+
+    Route::get('home-popup', [HomePopupController::class, 'index'])->name('home-popup.index');
+    Route::put('home-popup', [HomePopupController::class, 'update'])->name('home-popup.update');
 
     // Reports
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

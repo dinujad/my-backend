@@ -67,13 +67,9 @@ class CheckoutApiController extends Controller
                 }
             }
 
-            // Send emails/sms/whatsapp order confirmation
-            try {
-                $this->emailService->sendOrderEmail($order, 'created');
-                $this->smsService->sendOrderSms($order, 'created');
-                app(\App\Services\WhatsAppService::class)->sendOrderConfirmation($order);
-            } catch (Exception $e) {
-                Log::error("Failed to send checkout notifications for order {$order->id}: " . $e->getMessage());
+            $paymentMethod = (string) $request->input('payment_method', 'cod');
+            if (! in_array($paymentMethod, ['onepay', 'payzy', 'payhere'], true)) {
+                app(\App\Services\OrderConfirmationNotifier::class)->send($order);
             }
 
             return response()->json([

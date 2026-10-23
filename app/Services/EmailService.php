@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\EmailLog;
+use App\Mail\AdminOrderMail;
 use App\Mail\OrderEventMail;
 use App\Mail\WelcomeMail;
 use Illuminate\Support\Facades\Mail;
@@ -43,6 +44,40 @@ class EmailService
             'to_email' => $toEmail,
             'subject' => $subject,
             'event_type' => $eventType,
+            'is_sent' => $isSent,
+            'error_message' => $error,
+            'sent_at' => $isSent ? now() : null,
+        ]);
+    }
+
+    /**
+     * Tell the shop admin that an order is confirmed, with the order details.
+     */
+    public function sendAdminOrderEmail(Order $order): void
+    {
+        $toEmail = (string) config('app.admin_notify_email');
+        if ($toEmail === '' || ! filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+
+        $order->loadMissing(['items', 'customer', 'payments']);
+        $subject = "New order {$order->order_number} — Print Works LK";
+
+        try {
+            Mail::to($toEmail)->send(new AdminOrderMail($order));
+            $isSent = true;
+            $error = null;
+        } catch (\Exception $e) {
+            $isSent = false;
+            $error = $e->getMessage();
+            Log::error("Admin order email failed for order {$order->id}: {$error}");
+        }
+
+        EmailLog::create([
+            'order_id' => $order->id,
+            'to_email' => $toEmail,
+            'subject' => $subject,
+            'event_type' => 'admin_confirmed',
             'is_sent' => $isSent,
             'error_message' => $error,
             'sent_at' => $isSent ? now() : null,
