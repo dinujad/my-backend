@@ -143,7 +143,11 @@ class PayzyService
             throw new RuntimeException('Payzy return URL must be HTTPS. Set FRONTEND_URL to the live storefront.');
         }
 
+        $order->refresh();
         $fields = $this->fieldsFor($order, $frontend);
+        if ((float) $fields['x_amount'] <= 0) {
+            throw new RuntimeException('This order has no amount to send to Payzy.');
+        }
         $signature = self::sign(self::requestString($fields), $secret);
         $payload = $fields;
         $payload['signed_field_names'] = implode(',', [...self::REQUEST_FIELDS, 'signed_field_names']);
@@ -255,14 +259,14 @@ class PayzyService
         $district = $this->clean((string) ($address['district'] ?? $address['city'] ?? ''), 'Colombo');
         $zip = $this->clean((string) ($address['postal_code'] ?? ''), '00000');
         $company = $this->clean((string) config('payzy.company'), 'Print Works.LK');
-        $goods = max(0, (float) $order->subtotal - (float) $order->discount_amount);
-        $freight = max(0, (float) $order->shipping_cost);
+        [$goods, $freight] = $this->cartAmounts($order);
 
         return [
             'x_test_mode' => (string) config('payzy.test_mode', 'off'),
             'x_shopid' => (string) config('payzy.shop_id'),
-            'x_amount' => self::goodsCharge($goods),
-            // 12% is added on the amount Payzy collects. The storefront total stays the selling price.
+            // Full cart total plus 12%. Payzy shows this figure and subtracts x_freight,
+            // so freight stays the real delivery charge and cannot wipe the price to 0.
+            'x_amount' => self::goodsCharge($goods + $freight),
             'x_order_id' => (string) $order->order_number,
             'x_response_url' => $frontend.'/checkout/payment/return?order='.rawurlencode((string) $order->order_number),
             'x_first_name' => $first,
@@ -283,10 +287,30 @@ class PayzyService
             'x_ship_to_state' => $district,
             'x_ship_to_city' => $district,
             'x_ship_to_zip' => $zip,
-            'x_freight' => self::goodsCharge($freight),
+            'x_freight' => self::money($freight),
             'x_platform' => (string) config('payzy.platform', 'custom'),
             'x_version' => (string) config('payzy.version', '1.0'),
         ];
+    }
+
+    /**
+     * @return array{0: float, 1: float} goods after discount, then shipping
+     */
+    private function cartAmounts(Order $order): array
+    {
+        $order->loadMissing('items');
+        $itemsTotal = (float) $order->items->sum(fn ($item) => (float) $item->total_price);
+        $subtotal = (float) $order->subtotal;
+        $discount = max(0, (float) $order->discount_amount);
+        $freight = max(0, (float) $order->shipping_cost);
+        $headerTotal = max(0, (float) $order->total);
+
+        $goods = max(0, max($subtotal, $itemsTotal) - $discount);
+        if ($goods + $freight <= 0 && $headerTotal > 0) {
+            return [$headerTotal, 0.0];
+        }
+
+        return [$goods, $freight];
     }
 
     private function clean(string $value, string $fallback): string

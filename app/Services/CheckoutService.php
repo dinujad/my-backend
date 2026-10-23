@@ -127,6 +127,13 @@ class CheckoutService
                     }
                 }
 
+                if ($unitPrice <= 0) {
+                    $submitted = (float) ($itemData['unit_price'] ?? $itemData['price'] ?? 0);
+                    if ($submitted > 0) {
+                        $unitPrice = $submitted;
+                    }
+                }
+
                 $customizationFee = floatval($itemData['customization_fee'] ?? 0);
                 $additionalServicesFee = floatval($itemData['additional_services_fee'] ?? 0);
                 $perItemServices = 0.0;
