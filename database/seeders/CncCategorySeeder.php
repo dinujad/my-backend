@@ -18,11 +18,17 @@ use Illuminate\Database\Seeder;
  * - Category is created/updated by slug (same pattern as CategorySeeder).
  * - Products use firstOrCreate by slug, so re-running this seeder NEVER
  *   reverts an admin change (e.g. publishing a product after photos arrive).
- * - Products are created as DRAFT with no price and no image: nothing goes
- *   public from this seeder alone. Publish each product from the admin panel
+ * - Products are created as DRAFT with no image: nothing goes public
+ *   from this seeder alone. Publish each product from the admin panel
  *   once its genuine workshop photo is attached, and set the category live
  *   only when at least the first products are published.
- * - No prices are set anywhere (quote model — never invent a price).
+ * - Price: the live `products.price` column is NOT NULL with no default
+ *   (migration 2024_01_01_000002), so inserts MUST carry a price value.
+ *   These products store price 0 — the system's existing quote sentinel
+ *   (all current quote products, e.g. plywood cutting, store 0 and the
+ *   storefront renders 0 as "Price on request" once the quote-state fix
+ *   deploys). 0 is never a selling price and never reaches Merchant Center
+ *   (the feed only carries genuinely priced products).
  */
 class CncCategorySeeder extends Seeder
 {
@@ -143,6 +149,8 @@ class CncCategorySeeder extends Seeder
                     'stock_status' => 'instock',
                     'is_active' => true,
                     'sort_order' => $index + 1,
+                    // Quote sentinel, NOT a selling price: see docblock.
+                    'price' => 0,
                 ])
             );
         }
