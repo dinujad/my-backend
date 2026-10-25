@@ -58,7 +58,7 @@ class ProductSeoRound1Seeder extends Seeder
                 'Flex banner printing in Sri Lanka for events, promotions and shopfronts — durable PVC, crisp colours, hemming, eyelets and pole pockets. Island-wide delivery.',
             ],
             'pvc-translucent-business-cards' => [
-                'PVC Translucent Business Cards — Business Card Printing in Colombo, Sri Lanka',
+                'PVC Translucent Business Cards — Business Card Printing',
                 'Business card printing in Colombo, Sri Lanka — frosted translucent PVC cards with durable UV print. Quality prints, island-wide delivery.',
             ],
         ];
