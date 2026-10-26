@@ -34,6 +34,8 @@ class CategoryController extends Controller
             'slug' => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
+            'seo_title' => 'nullable|string|max:60',
+            'seo_description' => 'nullable|string|max:160',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
@@ -66,6 +68,8 @@ class CategoryController extends Controller
             'slug' => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
+            'seo_title' => 'nullable|string|max:60',
+            'seo_description' => 'nullable|string|max:160',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
