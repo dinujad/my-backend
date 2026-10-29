@@ -57,10 +57,13 @@
 
 {{-- Quick Actions --}}
 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+    @if(auth()->user()->canManageProducts())
     <a href="{{ route('admin.products.create') }}" class="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 hover:border-brand-red hover:shadow-sm transition">
         <i class="bi bi-plus-circle text-brand-red text-xl"></i>
         <span class="text-sm font-medium text-gray-700">Add Product</span>
     </a>
+    @endif
+    @if(auth()->user()->canEditStore())
     <a href="{{ route('admin.orders.create') }}" class="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 hover:border-brand-red hover:shadow-sm transition">
         <i class="bi bi-cart-plus text-brand-red text-xl"></i>
         <span class="text-sm font-medium text-gray-700">New Order</span>
@@ -69,10 +72,17 @@
         <i class="bi bi-pencil-square text-brand-red text-xl"></i>
         <span class="text-sm font-medium text-gray-700">New Blog Post</span>
     </a>
+    @endif
+    @if(auth()->user()->canViewOperations())
     <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 hover:border-brand-red hover:shadow-sm transition">
         <i class="bi bi-graph-up text-brand-red text-xl"></i>
         <span class="text-sm font-medium text-gray-700">View Reports</span>
     </a>
+    <a href="{{ route('admin.quote-requests.index') }}" class="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 hover:border-brand-red hover:shadow-sm transition">
+        <i class="bi bi-file-earmark-text text-brand-red text-xl"></i>
+        <span class="text-sm font-medium text-gray-700">Quote Requests</span>
+    </a>
+    @endif
 </div>
 
 {{-- Recent Orders + Recent Products --}}
@@ -83,7 +93,9 @@
             <h2 class="font-semibold text-gray-900 flex items-center gap-2">
                 <i class="bi bi-cart-check text-brand-red"></i> Recent Orders
             </h2>
+            @if(auth()->user()->canViewOperations())
             <a href="{{ route('admin.orders.index') }}" class="text-xs text-brand-red hover:underline">View all</a>
+            @endif
         </div>
         <div class="divide-y divide-gray-50">
             @forelse($recentOrders as $order)
@@ -120,7 +132,9 @@
             <h2 class="font-semibold text-gray-900 flex items-center gap-2">
                 <i class="bi bi-box-seam text-brand-red"></i> Recent Products
             </h2>
+            @if(auth()->user()->canManageProducts())
             <a href="{{ route('admin.products.index') }}" class="text-xs text-brand-red hover:underline">View all</a>
+            @endif
         </div>
         <div class="divide-y divide-gray-50">
             @forelse($recentProducts as $product)

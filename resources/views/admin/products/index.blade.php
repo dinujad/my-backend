@@ -77,6 +77,7 @@
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Product</th>
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Category</th>
                 <th class="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
+                <th class="px-4 py-3 text-center font-semibold text-gray-600">Stock</th>
                 <th class="px-3 py-3 text-center font-semibold text-gray-600" title="Special Offer (sidebar, max 2)">Special</th>
                 <th class="px-3 py-3 text-center font-semibold text-gray-600" title="Featured tab">Featured</th>
                 <th class="px-3 py-3 text-center font-semibold text-gray-600" title="On Sale tab">Sale</th>
@@ -110,6 +111,18 @@
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $product->category?->name ?? '–' }}</td>
                     <td class="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">{{ $product->adminListPrice() }}</td>
+                    <td class="px-4 py-3 text-center whitespace-nowrap">
+                        @if($product->variations->isNotEmpty())
+                            @php $qty = (int) $product->variations->sum('stock_quantity'); @endphp
+                            <span class="font-semibold {{ $qty <= 0 ? 'text-red-600' : 'text-gray-900' }}">{{ $qty }}</span>
+                            <span class="block text-[10px] text-gray-400">variations</span>
+                        @elseif($product->manage_stock)
+                            @php $qty = (int) $product->stock_quantity; @endphp
+                            <span class="font-semibold {{ $qty <= (int) ($product->low_stock_threshold ?? 0) ? 'text-amber-600' : 'text-gray-900' }}">{{ $qty }}</span>
+                        @else
+                            <span class="text-xs text-gray-500">{{ ucfirst(str_replace('_', ' ', $product->stock_status ?: 'in stock')) }}</span>
+                        @endif
+                    </td>
                     <td class="px-3 py-3 text-center">
                         <input type="checkbox" class="hp-flag rounded border-gray-300 text-brand-red focus:ring-brand-red"
                                data-field="is_special_offer" data-product-id="{{ $product->id }}"
@@ -148,7 +161,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="10" class="px-4 py-10 text-center text-gray-400">No products found for current filter. <a href="{{ route('admin.products.index') }}" class="text-brand-red hover:underline">Clear filters</a>.</td></tr>
+                <tr><td colspan="11" class="px-4 py-10 text-center text-gray-400">No products found for current filter. <a href="{{ route('admin.products.index') }}" class="text-brand-red hover:underline">Clear filters</a>.</td></tr>
             @endforelse
         </tbody>
     </table>

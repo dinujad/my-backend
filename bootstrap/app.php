@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'admin.panel' => \App\Http\Middleware\AdminPanelMiddleware::class,
+            'admin.catalog' => \App\Http\Middleware\AdminCatalogMiddleware::class,
+            'admin.view' => \App\Http\Middleware\AdminViewMiddleware::class,
+            'admin.staff' => \App\Http\Middleware\AdminStaffMiddleware::class,
         ]);
         $middleware->preventRequestsDuringMaintenance(except: [
             '/up',

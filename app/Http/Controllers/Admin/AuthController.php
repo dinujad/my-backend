@@ -11,7 +11,7 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        if (Auth::guard('web')->check() && Auth::guard('web')->user()->isAdmin()) {
+        if (Auth::guard('web')->check() && Auth::guard('web')->user()->canAccessAdmin()) {
             return redirect()->route('admin.dashboard');
         }
 
@@ -32,7 +32,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::guard('web')->user();
-        if (! $user->isAdmin()) {
+        if (! $user->canAccessAdmin()) {
             Auth::guard('web')->logout();
             throw ValidationException::withMessages([
                 'email' => 'You do not have access to the admin panel.',

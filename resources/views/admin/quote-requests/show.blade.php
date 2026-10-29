@@ -27,6 +27,7 @@
         <h1 class="text-2xl font-bold text-gray-900">{{ $quoteRequest->request_number }}</h1>
         <p class="text-sm text-gray-500 mt-0.5">Submitted {{ $quoteRequest->created_at->format('d M Y, H:i') }}</p>
     </div>
+    @if(auth()->user()->canEditStore())
     <form method="POST" action="{{ route('admin.quote-requests.status', $quoteRequest) }}" class="flex items-center gap-2">
         @csrf
         <select name="status" class="rounded-lg border border-gray-200 px-3 py-2 text-sm">
@@ -36,6 +37,9 @@
         </select>
         <button type="submit" class="rounded-lg bg-brand-red text-white px-4 py-2 text-sm font-medium hover:bg-red-dark">Update Status</button>
     </form>
+    @else
+    <span class="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">{{ \App\Models\QuoteRequest::$statuses[$quoteRequest->status] ?? ucfirst($quoteRequest->status) }} · View only</span>
+    @endif
 </div>
 
 @php
@@ -143,7 +147,7 @@
         </div>
 
         {{-- ====== QUOTATION BUILDER ====== --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 {{ auth()->user()->canEditStore() ? '' : 'pointer-events-none' }}">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-base font-semibold text-gray-900 flex items-center gap-2">
                     <i class="bi bi-receipt text-brand-red"></i>
@@ -190,19 +194,23 @@
                                 <td class="py-2 px-1 text-right font-semibold text-gray-800"
                                     x-text="'Rs. ' + lineSubtotal(item).toLocaleString('en-LK', {minimumFractionDigits:2})"></td>
                                 <td class="py-2 pl-1">
+                                    @if(auth()->user()->canEditStore())
                                     <button type="button" @click="items.splice(idx,1)"
                                         class="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
                                         <i class="bi bi-x-lg text-xs"></i>
                                     </button>
+                                    @endif
                                 </td>
                             </tr>
                         </template>
                     </tbody>
                 </table>
+                @if(auth()->user()->canEditStore())
                 <button type="button" @click="addItem()"
                     class="mt-3 w-full rounded-lg border-2 border-dashed border-gray-200 py-2.5 text-sm font-medium text-gray-400 hover:border-brand-red hover:text-brand-red transition">
                     <i class="bi bi-plus-lg mr-1"></i> Add line item
                 </button>
+                @endif
             </div>
 
             {{-- Totals --}}
@@ -262,12 +270,14 @@
             <div x-show="saveError" x-text="saveError" class="mb-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600"></div>
 
             {{-- Save button --}}
+            @if(auth()->user()->canEditStore())
             <button type="button" @click="saveQuotation()"
                 :disabled="saving"
                 class="w-full rounded-xl bg-gray-900 text-white py-3 text-sm font-bold hover:bg-black transition disabled:opacity-60">
                 <span x-show="!saving" x-text="quotationId ? 'Update Quotation' : 'Create Quotation'"></span>
                 <span x-show="saving"><i class="bi bi-arrow-repeat animate-spin"></i> Saving…</span>
             </button>
+            @endif
         </div>
 
         {{-- ====== QUOTATION PREVIEW ====== --}}
@@ -393,6 +403,7 @@
                 <i class="bi bi-send text-brand-red"></i> Send Quotation
             </h2>
 
+            @if(auth()->user()->canEditStore())
             {{-- WhatsApp Send --}}
             <button type="button" @click="sendWhatsApp()"
                 :disabled="sendingWa"
@@ -403,6 +414,7 @@
                 </span>
                 <span x-show="sendingWa"><i class="bi bi-arrow-repeat animate-spin"></i> Sending…</span>
             </button>
+            @endif
 
             {{-- Download / Print --}}
             <button type="button" @click="printQuotation()"
@@ -433,6 +445,7 @@
             <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
                 <i class="bi bi-journal-text text-brand-red"></i> Admin Notes
             </h2>
+            @if(auth()->user()->canEditStore())
             <form method="POST" action="{{ route('admin.quote-requests.notes', $quoteRequest) }}">
                 @csrf
                 <textarea name="admin_notes" rows="5"
@@ -442,6 +455,9 @@
                     Save Notes
                 </button>
             </form>
+            @else
+            <p class="whitespace-pre-line text-sm text-gray-600">{{ $quoteRequest->admin_notes ?: 'No notes.' }}</p>
+            @endif
         </div>
 
         {{-- Status History --}}

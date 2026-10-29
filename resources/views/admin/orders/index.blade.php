@@ -7,9 +7,11 @@
     <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
         <i class="bi bi-cart-check text-brand-red"></i> Orders
     </h1>
+    @if(auth()->user()->canEditStore())
     <a href="{{ route('admin.orders.create') }}" class="flex items-center gap-2 bg-brand-red text-white px-4 py-2 rounded-lg hover:bg-red-dark transition text-sm font-medium">
         <i class="bi bi-plus-lg"></i> New Order
     </a>
+    @endif
 </div>
 
 {{-- Status Filter --}}

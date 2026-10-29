@@ -7,9 +7,11 @@
     <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
         <i class="bi bi-people text-brand-red"></i> Customers
     </h1>
+    @if(auth()->user()->canEditStore())
     <a href="{{ route('admin.customers.create') }}" class="flex items-center gap-2 bg-brand-red text-white px-4 py-2 rounded-lg hover:bg-red-dark transition text-sm font-medium">
         <i class="bi bi-plus-lg"></i> Add Customer
     </a>
+    @endif
 </div>
 
 <form method="GET" class="mb-4 flex gap-2">
@@ -42,7 +44,9 @@
                     <td class="px-4 py-3 text-right text-gray-900 font-medium">Rs. {{ number_format($customer->total_spent, 0) }}</td>
                     <td class="px-4 py-3 text-right">
                         <a href="{{ route('admin.customers.show', $customer) }}" class="text-brand-red hover:underline text-xs mr-2">View</a>
+                        @if(auth()->user()->canEditStore())
                         <a href="{{ route('admin.customers.edit', $customer) }}" class="text-blue-500 hover:underline text-xs">Edit</a>
+                        @endif
                     </td>
                 </tr>
             @empty

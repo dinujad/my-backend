@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ProductAjaxController;
 use App\Http\Controllers\Admin\WhatsAppCampaignController;
 use App\Http\Controllers\Admin\SmsCampaignController;
+use App\Http\Controllers\Admin\StaffUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -34,33 +35,45 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 
 // Admin panel
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin.panel'])->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Products
-    Route::post('products/ajax/generate-variations', [ProductAjaxController::class, 'generateVariations'])->name('products.ajax.generate-variations');
-    Route::post('products/ajax/categories', [ProductAjaxController::class, 'storeCategory'])->name('products.ajax.categories');
-    Route::post('products/ajax/tags', [ProductAjaxController::class, 'storeTag'])->name('products.ajax.tags');
-    Route::post('products/ajax/brands', [ProductAjaxController::class, 'storeBrand'])->name('products.ajax.brands');
-    Route::patch('products/{product}/homepage-flags', [ProductController::class, 'updateHomepageFlags'])->name('products.homepage-flags');
-    Route::resource('products', ProductController::class)->except(['show']);
+    // Editor: add and manage products, including stock.
+    Route::middleware('admin.catalog')->group(function () {
+        Route::post('products/ajax/generate-variations', [ProductAjaxController::class, 'generateVariations'])->name('products.ajax.generate-variations');
+        Route::post('products/ajax/categories', [ProductAjaxController::class, 'storeCategory'])->name('products.ajax.categories');
+        Route::post('products/ajax/tags', [ProductAjaxController::class, 'storeTag'])->name('products.ajax.tags');
+        Route::post('products/ajax/brands', [ProductAjaxController::class, 'storeBrand'])->name('products.ajax.brands');
+        Route::patch('products/{product}/homepage-flags', [ProductController::class, 'updateHomepageFlags'])->name('products.homepage-flags');
+        Route::resource('products', ProductController::class)->except(['show']);
+    });
 
+    // Web manager: view orders, quotes, customers, and reports. No writes.
+    Route::middleware('admin.view')->group(function () {
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [OrderController::class, 'show'])->whereNumber('order')->name('orders.show');
+        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')->name('customers.show');
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('quote-requests', [QuoteRequestController::class, 'index'])->name('quote-requests.index');
+        Route::get('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'show'])->name('quote-requests.show');
+        Route::get('quote-requests/{quoteRequest}/download-pdf', [QuoteRequestController::class, 'downloadPdf'])->name('quote-requests.download-pdf');
+    });
+
+    Route::middleware('admin')->group(function () {
     // Categories
     Route::resource('categories', CategoryController::class)->except(['show']);
 
-    // Orders
-    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    // Orders (create, status, delete)
     Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
-    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
-    // Customers
-    Route::resource('customers', CustomerController::class)->except(['show']);
-    Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    // Customers (create and edit)
+    Route::resource('customers', CustomerController::class)->except(['index', 'show']);
 
     // Blog
     Route::resource('blog', BlogController::class)->except(['show']);
@@ -87,11 +100,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('home-popup', [HomePopupController::class, 'index'])->name('home-popup.index');
     Route::put('home-popup', [HomePopupController::class, 'update'])->name('home-popup.update');
 
-    // Reports
-    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-
-    // Quote Requests
-    Route::get('quote-requests', [QuoteRequestController::class, 'index'])->name('quote-requests.index');
+    // Quote Requests (writes only — list and detail are view-only above)
 
     // Careers
     Route::resource('job-openings', JobOpeningController::class)->except(['show']);
@@ -99,13 +108,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('job-applications/{job_application}', [JobApplicationController::class, 'show'])->name('job-applications.show');
     Route::post('job-applications/{job_application}/status', [JobApplicationController::class, 'updateStatus'])->name('job-applications.status');
 
-    Route::get('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'show'])->name('quote-requests.show');
     Route::post('quote-requests/{quoteRequest}/status', [QuoteRequestController::class, 'updateStatus'])->name('quote-requests.status');
     Route::post('quote-requests/{quoteRequest}/notes', [QuoteRequestController::class, 'updateNotes'])->name('quote-requests.notes');
     // AJAX endpoints (session auth, no Sanctum token needed)
     Route::post('quote-requests/{quoteRequest}/save-quotation', [QuoteRequestController::class, 'saveQuotation'])->name('quote-requests.save-quotation');
     Route::post('quote-requests/{quoteRequest}/send-whatsapp', [QuoteRequestController::class, 'sendWhatsApp'])->name('quote-requests.send-whatsapp');
-    Route::get('quote-requests/{quoteRequest}/download-pdf', [QuoteRequestController::class, 'downloadPdf'])->name('quote-requests.download-pdf');
 
     // Payment Methods
     Route::get('payments', [PaymentMethodController::class, 'index'])->name('payments.index');
@@ -147,4 +154,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('sms/campaigns', [SmsCampaignController::class, 'index'])->name('sms.campaigns');
     Route::post('sms/campaigns/send', [SmsCampaignController::class, 'send'])->name('sms.send');
     Route::get('sms/campaigns/sample', [SmsCampaignController::class, 'downloadSample'])->name('sms.sample');
+
+    Route::middleware('admin.staff')->group(function () {
+        Route::get('staff', [StaffUserController::class, 'index'])->name('staff.index');
+        Route::get('staff/create', [StaffUserController::class, 'create'])->name('staff.create');
+        Route::post('staff', [StaffUserController::class, 'store'])->name('staff.store');
+        Route::get('staff/{user}/edit', [StaffUserController::class, 'edit'])->name('staff.edit');
+        Route::put('staff/{user}', [StaffUserController::class, 'update'])->name('staff.update');
+    });
+    });
 });

@@ -20,22 +20,33 @@
             <div class="p-5 border-b border-gray-700">
                 <a href="{{ route('admin.dashboard') }}" class="inline-flex flex-col items-start">
                     <img src="{{ asset('logo.png') }}" alt="Print Works LK" class="h-9 object-contain">
-                    <span class="block text-xs text-gray-400 mt-1">Admin Panel</span>
+                    <span class="block text-xs text-gray-400 mt-1">{{ auth()->user()->isWebManager() ? 'Web Manager' : (auth()->user()->isEditor() ? 'Editor' : 'Admin Panel') }}</span>
                 </a>
             </div>
             <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto">
+                @php
+                    $canCatalog = auth()->user()->canManageProducts();
+                    $canView = auth()->user()->canViewOperations();
+                    $canEdit = auth()->user()->canEditStore();
+                    $canStaff = auth()->user()->canManageStaff();
+                @endphp
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.dashboard') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-speedometer2 text-lg w-6 text-center"></i>
                     <span>Dashboard</span>
                 </a>
+                @if($canCatalog)
                 <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.products.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-box-seam text-lg w-6 text-center"></i>
                     <span>Products</span>
                 </a>
+                @endif
+                @if($canEdit)
                 <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.categories.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-folder2 text-lg w-6 text-center"></i>
                     <span>Categories</span>
                 </a>
+                @endif
+                @if($canView)
                 <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.orders.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-cart-check text-lg w-6 text-center"></i>
                     <span>Orders</span>
@@ -44,6 +55,8 @@
                     <i class="bi bi-people text-lg w-6 text-center"></i>
                     <span>Customers</span>
                 </a>
+                @endif
+                @if($canEdit)
                 <a href="{{ route('admin.blog.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.blog.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-journal-text text-lg w-6 text-center"></i>
                     <span>Blog</span>
@@ -72,10 +85,14 @@
                     <i class="bi bi-window-stack text-lg w-6 text-center"></i>
                     <span>Home Popup</span>
                 </a>
+                @endif
+                @if($canView)
                 <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.reports.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-graph-up text-lg w-6 text-center"></i>
                     <span>Reports</span>
                 </a>
+                @endif
+                @if($canEdit)
                 <a href="{{ route('admin.ai.overview') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.ai.overview') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-stars text-lg w-6 text-center"></i>
                     <span>AI Overview</span>
@@ -112,14 +129,25 @@
                     <i class="bi bi-person-lines-fill text-lg w-6 text-center"></i>
                     <span>Job Applications</span>
                 </a>
+                @endif
+                @if($canView)
                 <a href="{{ route('admin.quote-requests.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.quote-requests.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
                     <i class="bi bi-file-earmark-text text-lg w-6 text-center"></i>
                     <span>Quote Requests</span>
                 </a>
+                @endif
+                @if($canEdit)
                 <a href="{{ config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000')) }}/admin/live-chat" target="_blank" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition hover:bg-gray-800 text-gray-300">
                     <i class="bi bi-headset text-lg w-6 text-center"></i>
                     <span>Live Chat Support</span>
                 </a>
+                @endif
+                @if($canStaff)
+                <a href="{{ route('admin.staff.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('admin.staff.*') ? 'bg-brand-red text-white' : 'hover:bg-gray-800 text-gray-300' }}">
+                    <i class="bi bi-person-badge text-lg w-6 text-center"></i>
+                    <span>Staff</span>
+                </a>
+                @endif
             </nav>
             <div class="p-3 border-t border-gray-700">
                 <form method="POST" action="{{ route('admin.logout') }}">

@@ -15,7 +15,11 @@ class AdminMiddleware
         }
 
         if (! $request->user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthorized.'], 403);
+            }
+
+            return redirect()->route('admin.dashboard')->with('error', 'You do not have permission to change that.');
         }
 
         return $next($request);

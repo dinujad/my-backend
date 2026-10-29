@@ -112,6 +112,7 @@
 
     {{-- Sidebar --}}
     <div class="space-y-6">
+        @if(auth()->user()->canEditStore())
         {{-- Update Status --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -153,6 +154,11 @@
                 </button>
             </form>
         </div>
+        @else
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-sm text-gray-500">
+            View only. Order status and payment status cannot be changed with this role.
+        </div>
+        @endif
 
         {{-- Customer / Shipping Info --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
@@ -179,6 +185,7 @@
             @endif
         </div>
 
+        @if(auth()->user()->canEditStore())
         {{-- Delete --}}
         <form method="POST" action="{{ route('admin.orders.destroy', $order) }}"
               onsubmit="return confirm('Delete this order?')">
@@ -187,6 +194,7 @@
                 <i class="bi bi-trash"></i> Delete Order
             </button>
         </form>
+        @endif
     </div>
 </div>
 @endsection
