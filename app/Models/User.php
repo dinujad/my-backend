@@ -27,10 +27,10 @@ class User extends Authenticatable
         });
     }
 
-    /** Full store access: orders, quotes, settings. Editor and web manager are not included. */
+    /** Full store access except staff management. Editor is not included. */
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'super_admin', 'chat_manager'], true);
+        return in_array($this->role, ['admin', 'super_admin', 'chat_manager', 'web_manager'], true);
     }
 
     public function isFullAdmin(): bool

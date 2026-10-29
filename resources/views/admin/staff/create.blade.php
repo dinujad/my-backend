@@ -29,7 +29,7 @@
                 <option value="{{ $value }}" @selected(old('role') === $value)>{{ $label }}</option>
             @endforeach
         </select>
-        <p class="mt-1 text-xs text-gray-500">Editor can add and manage products, and see stock. Web Manager can view orders, quotes, customers, and reports, without editing them.</p>
+        <p class="mt-1 text-xs text-gray-500">Editor can add and manage products, and see stock. Web Manager can use the rest of the admin panel, including AI, products, and website editing. Only an Admin can manage staff.</p>
         @error('role')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
     </div>
     <div>
