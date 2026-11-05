@@ -223,22 +223,29 @@ class CheckoutService
             $customer->total_spent += $total;
             $customer->save();
 
-            // 8. Resolve payment method and create initial Payment record for COD
-            $paymentMethodCode = $request->input('payment_method', 'cod');
+            // 8. Record the chosen payment method immediately so admin can see COD / OnePay / Payzy / PayHere.
+            $paymentMethodCode = strtolower((string) $request->input('payment_method', 'cod'));
             $paymentMethod = \App\Models\PaymentMethod::where('code', $paymentMethodCode)->first();
+            $paymentLabels = [
+                'cod' => 'Cash on Delivery',
+                'onepay' => 'OnePay',
+                'payzy' => 'Payzy',
+                'payhere' => 'PayHere',
+            ];
 
-            if ($paymentMethodCode === 'cod') {
-                \App\Models\Payment::create([
-                    'order_id'          => $order->id,
-                    'payment_method'    => 'cod',
+            \App\Models\Payment::updateOrCreate(
+                [
+                    'order_id' => $order->id,
+                    'payment_method' => $paymentMethodCode,
+                ],
+                [
                     'payment_method_id' => $paymentMethod?->id,
-                    'amount'            => $total,
-                    'currency'          => 'LKR',
-                    'status'            => 'pending',
-                    'payment_details'   => 'Cash on Delivery',
-                ]);
-            }
-            // For PayHere: payment record is created by notify callback
+                    'amount' => $total,
+                    'currency' => 'LKR',
+                    'status' => 'pending',
+                    'payment_details' => $paymentLabels[$paymentMethodCode] ?? strtoupper($paymentMethodCode),
+                ]
+            );
 
             // 7. Initial Status History
             $order->statusHistory()->create([

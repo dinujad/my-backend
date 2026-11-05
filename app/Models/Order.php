@@ -58,6 +58,42 @@ class Order extends Model
         return $this->hasMany(Payment::class);
     }
 
+    /** Latest recorded gateway / COD code, e.g. cod, onepay, payzy, payhere. */
+    public function paymentMethodCode(): ?string
+    {
+        $fromPayment = $this->relationLoaded('payments')
+            ? optional($this->payments->sortByDesc('id')->first())->payment_method
+            : $this->payments()->latest('id')->value('payment_method');
+
+        if (is_string($fromPayment) && $fromPayment !== '') {
+            return strtolower($fromPayment);
+        }
+
+        $note = $this->relationLoaded('statusHistory')
+            ? optional($this->statusHistory->first(
+                fn ($row) => is_string($row->notes) && str_starts_with($row->notes, 'Order placed via ')
+            ))->notes
+            : $this->statusHistory()->where('notes', 'like', 'Order placed via %')->value('notes');
+
+        if (is_string($note) && preg_match('/Order placed via\s+([A-Za-z0-9_]+)/', $note, $match)) {
+            return strtolower($match[1]);
+        }
+
+        return null;
+    }
+
+    public function paymentMethodLabel(): string
+    {
+        return match ($this->paymentMethodCode()) {
+            'cod' => 'Cash on Delivery',
+            'onepay' => 'OnePay',
+            'payzy' => 'Payzy',
+            'payhere' => 'PayHere',
+            null => 'Not set',
+            default => strtoupper((string) $this->paymentMethodCode()),
+        };
+    }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);

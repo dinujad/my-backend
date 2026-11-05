@@ -31,7 +31,8 @@
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Order #</th>
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Customer</th>
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                <th class="px-4 py-3 text-left font-semibold text-gray-600">Payment</th>
+                <th class="px-4 py-3 text-left font-semibold text-gray-600">Payment method</th>
+                <th class="px-4 py-3 text-left font-semibold text-gray-600">Payment status</th>
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Total</th>
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
                 <th class="px-4 py-3 text-right font-semibold text-gray-600">Action</th>
@@ -52,6 +53,13 @@
                         'unpaid' => 'bg-gray-100 text-gray-600',
                         'refunded' => 'bg-orange-100 text-orange-700',
                     ];
+                    $methodColors = [
+                        'cod' => 'bg-slate-100 text-slate-700',
+                        'onepay' => 'bg-indigo-100 text-indigo-700',
+                        'payzy' => 'bg-violet-100 text-violet-700',
+                        'payhere' => 'bg-sky-100 text-sky-700',
+                    ];
+                    $methodCode = $order->paymentMethodCode();
                 @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-mono font-semibold text-gray-900">{{ $order->order_number }}</td>
@@ -59,6 +67,11 @@
                     <td class="px-4 py-3">
                         <span class="px-2 py-0.5 rounded text-xs font-medium {{ $statusColors[$order->status] ?? 'bg-gray-100 text-gray-600' }}">
                             {{ ucfirst($order->status) }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold {{ $methodColors[$methodCode] ?? 'bg-gray-100 text-gray-600' }}">
+                            {{ $order->paymentMethodLabel() }}
                         </span>
                     </td>
                     <td class="px-4 py-3">
@@ -75,7 +88,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="px-4 py-10 text-center text-gray-400">No orders found.</td></tr>
+                <tr><td colspan="8" class="px-4 py-10 text-center text-gray-400">No orders found.</td></tr>
             @endforelse
         </tbody>
     </table>

@@ -20,6 +20,26 @@
     <span class="px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$order->status] ?? 'bg-gray-100 text-gray-600' }}">
         {{ ucfirst($order->status) }}
     </span>
+    @php
+        $methodColors = [
+            'cod' => 'bg-slate-100 text-slate-700',
+            'onepay' => 'bg-indigo-100 text-indigo-700',
+            'payzy' => 'bg-violet-100 text-violet-700',
+            'payhere' => 'bg-sky-100 text-sky-700',
+        ];
+        $methodCode = $order->paymentMethodCode();
+        $paymentColors = [
+            'paid' => 'bg-green-100 text-green-700',
+            'unpaid' => 'bg-gray-100 text-gray-600',
+            'refunded' => 'bg-orange-100 text-orange-700',
+        ];
+    @endphp
+    <span class="px-3 py-1 rounded-full text-sm font-semibold {{ $methodColors[$methodCode] ?? 'bg-gray-100 text-gray-600' }}">
+        {{ $order->paymentMethodLabel() }}
+    </span>
+    <span class="px-3 py-1 rounded-full text-sm font-medium {{ $paymentColors[$order->payment_status] ?? 'bg-gray-100 text-gray-600' }}">
+        {{ ucfirst($order->payment_status) }}
+    </span>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -112,6 +132,33 @@
 
     {{-- Sidebar --}}
     <div class="space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="bi bi-credit-card text-brand-red"></i> Payment method
+            </h3>
+            <p class="text-lg font-bold text-gray-900">{{ $order->paymentMethodLabel() }}</p>
+            <p class="mt-1 text-sm text-gray-500">
+                Status:
+                <span class="font-semibold {{ $paymentColors[$order->payment_status] ?? 'text-gray-700' }}">
+                    {{ ucfirst($order->payment_status) }}
+                </span>
+            </p>
+            @if($order->payments->isNotEmpty())
+                <div class="mt-3 space-y-2 border-t border-gray-100 pt-3">
+                    @foreach($order->payments->sortByDesc('id') as $payment)
+                        <div class="text-xs text-gray-500">
+                            <span class="font-semibold text-gray-700">{{ strtoupper($payment->payment_method) }}</span>
+                            · {{ ucfirst($payment->status ?? 'pending') }}
+                            · Rs. {{ number_format((float) $payment->amount, 2) }}
+                            @if($payment->gateway_payment_id)
+                                · Ref {{ $payment->gateway_payment_id }}
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
         @if(auth()->user()->canEditStore())
         {{-- Update Status --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
