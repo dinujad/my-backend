@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\QuoteRequest;
+use App\Models\QuoteRequestStatusLog;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\QuotationStatusLog;
@@ -166,11 +167,6 @@ class QuotationService
 
         if ($success) {
             $this->updateStatus($quotation, 'sent', $userId, 'Sent via WhatsApp.');
-            $quotation->update(['sent_at' => now()]);
-            $quotation->quoteRequest->update([
-                'status'           => 'sent',
-                'last_activity_at' => now(),
-            ]);
         }
 
         return ['success' => $success, 'message' => $apiResp];
@@ -179,7 +175,13 @@ class QuotationService
     public function updateStatus(Quotation $quotation, string $newStatus, int $userId, ?string $note = null): void
     {
         $old = $quotation->status;
-        $quotation->update(['status' => $newStatus]);
+        $payload = ['status' => $newStatus];
+
+        if ($newStatus === 'sent' && ! $quotation->sent_at) {
+            $payload['sent_at'] = now();
+        }
+
+        $quotation->update($payload);
 
         QuotationStatusLog::create([
             'quotation_id' => $quotation->id,
@@ -188,6 +190,33 @@ class QuotationService
             'to_status'    => $newStatus,
             'note'         => $note,
         ]);
+
+        // Keep the parent quote request in sync for the statuses staff manage by hand.
+        $requestStatus = match ($newStatus) {
+            'sent' => 'sent',
+            'accepted' => 'approved',
+            'rejected' => 'rejected',
+            'cancelled' => 'cancelled',
+            'ready', 'draft' => 'quoted',
+            default => null,
+        };
+
+        $quoteRequest = $quotation->quoteRequest;
+        if ($requestStatus && $quoteRequest && $quoteRequest->status !== $requestStatus) {
+            $oldRequestStatus = $quoteRequest->status;
+            $quoteRequest->update([
+                'status' => $requestStatus,
+                'last_activity_at' => now(),
+            ]);
+
+            QuoteRequestStatusLog::create([
+                'quote_request_id' => $quoteRequest->id,
+                'changed_by' => $userId,
+                'from_status' => $oldRequestStatus,
+                'to_status' => $requestStatus,
+                'note' => $note ?: ('Quotation marked as ' . (Quotation::$statuses[$newStatus] ?? $newStatus) . '.'),
+            ]);
+        }
     }
 
     private function generateQuoteNumber(): string

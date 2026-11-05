@@ -70,6 +70,29 @@ class QuoteRequestController extends Controller
         return back()->with('success', 'Quote request status updated.');
     }
 
+    public function updateQuotationStatus(Request $request, QuoteRequest $quoteRequest): RedirectResponse
+    {
+        $quotation = $quoteRequest->quotations()->latest()->first();
+
+        if (! $quotation) {
+            return back()->with('error', 'No quotation found. Create one first.');
+        }
+
+        $data = $request->validate([
+            'status' => 'required|in:' . implode(',', array_keys(Quotation::$statuses)),
+            'note'   => 'nullable|string|max:1000',
+        ]);
+
+        $this->quotationService->updateStatus(
+            $quotation,
+            $data['status'],
+            $request->user()->id,
+            $data['note'] ?? null
+        );
+
+        return back()->with('success', 'Quotation status updated to ' . (Quotation::$statuses[$data['status']] ?? $data['status']) . '.');
+    }
+
     public function updateNotes(Request $request, QuoteRequest $quoteRequest): RedirectResponse
     {
         $data = $request->validate([

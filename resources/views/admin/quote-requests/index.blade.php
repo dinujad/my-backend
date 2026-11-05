@@ -55,6 +55,7 @@
                         'customer_responded' => 'bg-cyan-100 text-cyan-700',
                         'approved' => 'bg-green-100 text-green-700',
                         'rejected' => 'bg-red-100 text-red-700',
+                        'cancelled' => 'bg-rose-100 text-rose-700',
                         'closed' => 'bg-gray-100 text-gray-700',
                     ];
                 @endphp

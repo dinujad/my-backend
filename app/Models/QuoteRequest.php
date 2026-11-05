@@ -34,6 +34,7 @@ class QuoteRequest extends Model
         'customer_responded'   => 'Customer Responded',
         'approved'             => 'Approved',
         'rejected'             => 'Rejected',
+        'cancelled'            => 'Cancelled',
         'closed'               => 'Closed',
     ];
 

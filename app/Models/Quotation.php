@@ -44,6 +44,7 @@ class Quotation extends Model
         'viewed'    => 'Viewed',
         'accepted'  => 'Accepted',
         'rejected'  => 'Rejected',
+        'cancelled' => 'Cancelled',
         'expired'   => 'Expired',
     ];
 

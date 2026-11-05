@@ -397,6 +397,39 @@
     {{-- ====== RIGHT COLUMN ====== --}}
     <div class="space-y-5">
 
+        {{-- Quotation status (manual) --}}
+        <div x-show="quotationId" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <i class="bi bi-flag text-brand-red"></i> Quotation Status
+            </h2>
+            @if(auth()->user()->canEditStore())
+            <form method="POST" action="{{ route('admin.quote-requests.quotation-status', $quoteRequest) }}" class="space-y-3">
+                @csrf
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Mark as</label>
+                    <select name="status" x-model="qtStatus"
+                            class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-brand-red">
+                        @foreach(\App\Models\Quotation::$statuses as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Note (optional)</label>
+                    <input type="text" name="note" maxlength="1000" placeholder="e.g. Sent by email / Customer cancelled"
+                           class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-brand-red">
+                </div>
+                <button type="submit" class="w-full rounded-lg bg-brand-red text-white py-2.5 text-sm font-bold hover:bg-red-dark transition">
+                    Update Quotation Status
+                </button>
+                <p class="text-[11px] text-gray-400">Use <strong>Sent</strong> after you send it (WhatsApp/email/print). Use <strong>Cancelled</strong> if the quote is dropped.</p>
+            </form>
+            @else
+            <p class="text-sm font-semibold text-gray-800 capitalize">{{ $latestQuotation->status_label ?? '—' }}</p>
+            <p class="mt-1 text-xs text-gray-500">View only — status cannot be changed with this role.</p>
+            @endif
+        </div>
+
         {{-- Send Actions --}}
         <div x-show="quotationId" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-3">
             <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
@@ -474,7 +507,7 @@
                             'awaiting_pricing'=>'bg-orange-100 text-orange-700','quoted'=>'bg-indigo-100 text-indigo-700',
                             'sent'=>'bg-violet-100 text-violet-700','customer_responded'=>'bg-cyan-100 text-cyan-700',
                             'approved'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700',
-                            'closed'=>'bg-gray-100 text-gray-700',
+                            'cancelled'=>'bg-rose-100 text-rose-700','closed'=>'bg-gray-100 text-gray-700',
                         ];
                         $statusLabels = \App\Models\QuoteRequest::$statuses;
                     @endphp

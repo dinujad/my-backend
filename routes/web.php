@@ -109,6 +109,7 @@ Route::middleware(['auth', 'admin.panel'])->prefix('admin')->name('admin.')->gro
     Route::post('job-applications/{job_application}/status', [JobApplicationController::class, 'updateStatus'])->name('job-applications.status');
 
     Route::post('quote-requests/{quoteRequest}/status', [QuoteRequestController::class, 'updateStatus'])->name('quote-requests.status');
+    Route::post('quote-requests/{quoteRequest}/quotation-status', [QuoteRequestController::class, 'updateQuotationStatus'])->name('quote-requests.quotation-status');
     Route::post('quote-requests/{quoteRequest}/notes', [QuoteRequestController::class, 'updateNotes'])->name('quote-requests.notes');
     // AJAX endpoints (session auth, no Sanctum token needed)
     Route::post('quote-requests/{quoteRequest}/save-quotation', [QuoteRequestController::class, 'saveQuotation'])->name('quote-requests.save-quotation');
