@@ -1180,10 +1180,13 @@
                     const data = await response.json();
                     
                     if(data.variations) {
-                        // Append to existing variations instead of wiping them entirely, 
+                        // Append to existing variations instead of wiping them entirely,
                         // but for simplicity of this demo we will just merge cautiously or replace.
                         // A true WC system marks existing combos. Here we blindly replace for simplicity.
-                        if(confirm('This will wipe out current variations and regenerate them. Continue?')) {
+                        // Only ask before wiping when variations already exist.
+                        // (e.g. converting a Simple product to Variable) there is nothing
+                        // to lose, and the native dialog blocks automated admin use.
+                        if(this.variations.length === 0 || confirm('This will wipe out current variations and regenerate them. Continue?')) {
                             this.variations = data.variations;
                         }
                     }
@@ -1196,9 +1199,10 @@
             },
             
             removeVariation(index) {
-                if(confirm('Remove this variation?')) {
-                    this.variations.splice(index, 1);
-                }
+                // No native confirm here: it blocks automated admin use, and removal
+                // is only in-memory until the product form is saved (reloading the
+                // page restores the variation).
+                this.variations.splice(index, 1);
             },
             
             async addTag() {
