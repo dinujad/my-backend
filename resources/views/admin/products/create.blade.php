@@ -1141,9 +1141,10 @@
             },
             
             removeVariation(index) {
-                if(confirm('Remove this variation?')) {
-                    this.variations.splice(index, 1);
-                }
+                // No native confirm here: it blocks automated admin use, and removal
+                // is only in-memory until the product form is saved (reloading the
+                // page restores the variation).
+                this.variations.splice(index, 1);
             },
             
             async addTag() {
