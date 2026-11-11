@@ -10,7 +10,7 @@
             <h1 class="text-2xl font-bold text-gray-900">Edit Product: {{ $product->name }}</h1>
         </div>
         <div class="flex gap-2">
-            <a href="{{ url('/product/' . $product->slug) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition flex items-center gap-2">
+            <a href="{{ rtrim(config('app.frontend_url', 'https://printworks.lk'), '/') . '/product/' . $product->slug }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition flex items-center gap-2">
                 <i class="bi bi-box-arrow-up-right"></i> View
             </a>
             <button type="button" @click="$refs.mainForm.submit()" class="px-4 py-2 bg-brand-red text-white rounded-lg text-sm font-medium hover:bg-red-dark transition flex items-center gap-2">
