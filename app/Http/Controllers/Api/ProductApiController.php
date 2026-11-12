@@ -167,6 +167,7 @@ class ProductApiController extends Controller
         return [
             'id'           => $p->id,
             'slug'         => $p->slug,
+            'updated_at'   => $p->updated_at?->toIso8601String(),
             'name'         => $p->name,
             'title'        => $p->name,           // alias for frontend compat
             'sku'          => $p->sku ?? 'PW-' . str_pad($p->id, 4, '0', STR_PAD_LEFT),

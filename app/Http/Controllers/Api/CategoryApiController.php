@@ -41,6 +41,7 @@ class CategoryApiController extends Controller
         return [
             'id'              => $c->id,
             'slug'            => $c->slug,
+            'updated_at'      => $c->updated_at?->toIso8601String(),
             'name'            => $c->name,
             'description'     => $c->description ?? '',
             'image_url'       => $c->image_url,
