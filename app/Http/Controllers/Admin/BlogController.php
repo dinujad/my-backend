@@ -37,6 +37,10 @@ class BlogController extends Controller
             'featured_image' => 'nullable|string|max:500',
             'is_published' => 'boolean',
             'seo_title' => 'nullable|string|max:60',
+            'faqs' => 'nullable|array|max:10',
+            'faqs.*.question' => 'required_with:faqs|string|max:255',
+            'faqs.*.answer' => 'required_with:faqs|string|max:1000',
+            'related_links_text' => 'nullable|string',
             'seo_description' => 'nullable|string|max:160',
         ]);
 
@@ -44,6 +48,11 @@ class BlogController extends Controller
         $data['is_published'] = $request->boolean('is_published');
         $data['published_at'] = $data['is_published'] ? now() : null;
         $data['user_id'] = auth()->id();
+
+        $data['related_links'] = collect(explode("\n", (string) $request->input('related_links_text', '')))->map(function ($line) { $parts = explode('|', $line, 2); $label = trim($parts[0] ?? ''); $href = trim($parts[1] ?? ''); return $label !== '' && $href !== '' ? ['label' => $label, 'href' => $href] : null; })->filter()->values()->all();
+        if (isset($data['faqs'])) {
+            $data['faqs'] = collect($data['faqs'] ?? [])->filter(fn ($f) => filled($f['question'] ?? null) && filled($f['answer'] ?? null))->values()->all();
+        }
 
         BlogPost::create($data);
 
@@ -68,6 +77,10 @@ class BlogController extends Controller
             'featured_image' => 'nullable|string|max:500',
             'is_published' => 'boolean',
             'seo_title' => 'nullable|string|max:60',
+            'faqs' => 'nullable|array|max:10',
+            'faqs.*.question' => 'required_with:faqs|string|max:255',
+            'faqs.*.answer' => 'required_with:faqs|string|max:1000',
+            'related_links_text' => 'nullable|string',
             'seo_description' => 'nullable|string|max:160',
         ]);
 
@@ -75,6 +88,11 @@ class BlogController extends Controller
         $data['is_published'] = $request->boolean('is_published');
         if ($data['is_published'] && !$blog->published_at) {
             $data['published_at'] = now();
+        }
+
+        $data['related_links'] = collect(explode("\n", (string) $request->input('related_links_text', '')))->map(function ($line) { $parts = explode('|', $line, 2); $label = trim($parts[0] ?? ''); $href = trim($parts[1] ?? ''); return $label !== '' && $href !== '' ? ['label' => $label, 'href' => $href] : null; })->filter()->values()->all();
+        if (isset($data['faqs'])) {
+            $data['faqs'] = collect($data['faqs'] ?? [])->filter(fn ($f) => filled($f['question'] ?? null) && filled($f['answer'] ?? null))->values()->all();
         }
 
         $blog->update($data);
