@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CategoryApiController;
+use App\Http\Controllers\Api\BlogApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\ProductReviewApiController;
 use App\Http\Controllers\Api\HomePopupApiController;
@@ -29,6 +30,8 @@ $publicRoutes = function () {
 
     Route::get('/categories',        [CategoryApiController::class, 'index']);
     Route::get('/categories/{slug}', [CategoryApiController::class, 'show']);
+    Route::get('/blog/posts', [BlogApiController::class, 'index']);
+    Route::get('/blog/posts/{slug}', [BlogApiController::class, 'show']);
 
     Route::get('/seo-settings', [SeoSettingApiController::class, 'show']);
     Route::get('/home-popup', [HomePopupApiController::class, 'show']);
