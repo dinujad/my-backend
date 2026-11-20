@@ -23,6 +23,8 @@ class BlogPost extends Model
         'published_at',
         'seo_title',
         'seo_description',
+    'faqs',
+    'related_links',
     ];
 
     protected function casts(): array
@@ -30,6 +32,8 @@ class BlogPost extends Model
         return [
             'is_published' => 'boolean',
             'published_at' => 'datetime',
+            'faqs' => 'array',
+            'related_links' => 'array',
         ];
     }
 
