@@ -173,6 +173,7 @@ class ProductApiController extends Controller
             'sku'          => $p->sku ?? 'PW-' . str_pad($p->id, 4, '0', STR_PAD_LEFT),
             'description'  => $p->description ?? '',
             'short_description' => $p->short_description ?? '',
+            'faqs' => $p->faqs ?? [],
             'enable_reviews' => (bool) $p->enable_reviews,
             'manage_stock' => (bool) $p->manage_stock,
             'stock_quantity' => $p->stock_quantity,
