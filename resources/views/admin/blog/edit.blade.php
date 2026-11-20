@@ -48,6 +48,30 @@
                     </div>
                 </div>
             </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <h2 class="font-semibold text-gray-800 mb-4">FAQs <span class="text-gray-400 text-sm font-normal">(max 10)</span></h2>
+                <div class="space-y-4">
+                    @for ($i = 0; $i < 5; $i++)
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Question</label>
+                                <input name="faqs[{{ $i }}][question]" value="{{ old('faqs.' . $i . '.question', $blog->faqs[$i]['question'] ?? '') }}" maxlength="255" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-red">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Answer</label>
+                                <textarea name="faqs[{{ $i }}][answer]" rows="2" maxlength="1000" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-red">{{ old('faqs.' . $i . '.answer', $blog->faqs[$i]['answer'] ?? '') }}</textarea>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <h2 class="font-semibold text-gray-800 mb-4">Related Links <span class="text-gray-400 text-sm font-normal">One per line: Label | /path</span></h2>
+                @php $relatedLinksText = collect($blog->related_links ?? [])->map(fn ($l) => trim(($l['label'] ?? '') . ' | ' . ($l['href'] ?? '')))->filter()->implode("\n"); @endphp
+                <textarea name="related_links_text" rows="4" placeholder="Acrylic name badges | /product/acrylic-name-badge" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-red">{{ old('related_links_text', $relatedLinksText) }}</textarea>
+            </div>
         </div>
 
         <div class="space-y-5">
