@@ -85,6 +85,9 @@ class UpdateProductRequest extends FormRequest
             
             // Extensibility
             'seo_title' => 'nullable|string|max:60',
+            'faqs' => 'nullable|array|max:10',
+            'faqs.*.question' => 'required_with:faqs|string|max:255',
+            'faqs.*.answer' => 'required_with:faqs|string|max:1000',
             'seo_description' => 'nullable|string|max:160',
             'focus_keyword' => 'nullable|string|max:255',
             
