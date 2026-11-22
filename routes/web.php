@@ -76,6 +76,8 @@ Route::middleware(['auth', 'admin.panel'])->prefix('admin')->name('admin.')->gro
     Route::resource('customers', CustomerController::class)->except(['index', 'show']);
 
     // Blog
+    Route::post('blog/upload-image', [BlogController::class, 'uploadImage'])->name('blog.upload-image');
+    Route::post('blog/categories', [BlogController::class, 'storeCategory'])->name('blog.categories.store');
     Route::resource('blog', BlogController::class)->except(['show']);
 
     // Media
