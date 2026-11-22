@@ -674,24 +674,25 @@
                                         <input type="checkbox" name="enable_reviews" value="1" {{ old('enable_reviews', $product->enable_reviews) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-red focus:ring-brand-red h-4 w-4">
                                         Enable reviews
                                     </label>
-                                                                    </div>
+                                </div>
                                 <div class="pt-4 border-t border-gray-100">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">FAQs (shown on the product page)</label>
-                                    <p class="text-xs text-gray-500 mb-3">Up to 5 questions and answers. Leave a pair blank to skip it.</p
-                                                                                                                                           <div class="space-y-3">
-                                                                                                                                               @for ($i = 0; $i <   5; $i++)
-                                                                                                                                                   <div class="border border-gray-200 rounded-lg p-3 space-y-2">
-                                                                                                                                                       <input type="text" name="faqs[{{ $i }}][question]" value="{{ old('faqs.' . $i . '.question', $product->faqs[$i]['question'] ?? '') }}" placeholder="Question {{ $i + 1 }}" maxlength="255" class="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm focus:border-brand-red outline-none">
-                                                                                                                                                       <textarea name="faqs[{{ $i }}][answer]" rows="2" placeholder="Answer {{ $i + 1 }}" maxlength="1000" class="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm focus:border-brand-red outline-none">{{ old('faqs.' . $i . '.answer', $product->faqs[$i]['answer'] ?? '') }}</textarea>
-                                                                                                                                                       </div>
-@endfor
-                                                                                                                                                   </div>
+                                    <p class="text-xs text-gray-500 mb-3">Up to 5 questions and answers. Leave a pair blank to skip it.</p>
+                                    <div class="space-y-3">
+                                        @for ($i = 0; $i < 5; $i++)
+                                            <div class="border border-gray-200 rounded-lg p-3 space-y-2">
+                                                <input type="text" name="faqs[{{ $i }}][question]" value="{{ old('faqs.' . $i . '.question', $product->faqs[$i]['question'] ?? '') }}" placeholder="Question {{ $i + 1 }}" maxlength="255" class="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm focus:border-brand-red outline-none">
+                                                <textarea name="faqs[{{ $i }}][answer]" rows="2" placeholder="Answer {{ $i + 1 }}" maxlength="1000" class="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm focus:border-brand-red outline-none">{{ old('faqs.' . $i . '.answer', $product->faqs[$i]['answer'] ?? '') }}</textarea>
+                                            </div>
+                                        @endfor
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-                                                                                                                                               </div>
+
             <!-- SEO Settings Card -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
                 <h2 class="font-semibold text-gray-800 flex items-center gap-2">
