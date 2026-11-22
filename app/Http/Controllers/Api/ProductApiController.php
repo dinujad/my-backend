@@ -28,6 +28,11 @@ class ProductApiController extends Controller
         return response()->json($products);
     }
 
+    public function priceOnRequestIds(): JsonResponse
+    {
+        return response()->json(Product::query()->where('price_on_request', true)->pluck('id'));
+    }
+
     /**
      * GET /api/products/{slug}
      * Returns a single active product by slug.
@@ -131,8 +136,9 @@ class ProductApiController extends Controller
     {
         $listing = ProductListingPrice::resolve($p);
         $price = $listing['numericPrice'];
-        $compare = $p->compare_price ? (float) $p->compare_price : null;
-        $offerPrice = $p->offer_price ? (float) $p->offer_price : null;
+        $priceOnRequest = (bool) $p->price_on_request;
+        $compare = ! $priceOnRequest && $p->compare_price ? (float) $p->compare_price : null;
+        $offerPrice = ! $priceOnRequest && $p->offer_price ? (float) $p->offer_price : null;
 
         // Format LKR price like "Rs. 4,475.00"
         $fmt = fn (float $v) => 'Rs. '.number_format($v, 2);
@@ -186,6 +192,7 @@ class ProductApiController extends Controller
                 'count'   => $reviewCount,
             ],
             'price'        => $displayPrice !== $price ? $fmt($displayPrice) : $listing['price'],
+            'price_on_request' => $priceOnRequest,
             'numericPrice' => $displayPrice,
             'priceRange'   => $listing['priceRange'],
             'priceMin'     => $listing['priceMin'],
@@ -216,7 +223,7 @@ class ProductApiController extends Controller
                     ->values()
                     ->toArray()
                 : [],
-            'priceTiers'   => $p->priceTiers ? $p->priceTiers->whereNull('product_variation_id')->map(fn($t) => [
+            'priceTiers'   => ! $priceOnRequest && $p->priceTiers ? $p->priceTiers->whereNull('product_variation_id')->map(fn($t) => [
                 'min_qty' => $t->min_qty,
                 'max_qty' => $t->max_qty,
                 'unit_price' => (float) $t->unit_price,
@@ -225,13 +232,13 @@ class ProductApiController extends Controller
             'variations'   => $p->relationLoaded('variations') ? $p->variations->map(fn($v) => [
                 'id' => $v->id,
                 'sku' => $v->sku ?? '',
-                'price' => (float) $v->price,
-                'sale_price' => $v->sale_price ? (float) $v->sale_price : null,
+                'price' => $priceOnRequest ? 0.0 : (float) $v->price,
+                'sale_price' => ! $priceOnRequest && $v->sale_price ? (float) $v->sale_price : null,
                 'stock_quantity' => $v->stock_quantity,
                 'image' => $v->images && $v->images->count() > 0 ? $formatImagePath($v->images->sortBy('sort_order')->first()->file_path) : null,
                 'image_alt' => $v->images && $v->images->count() > 0 ? $v->images->sortBy('sort_order')->first()->alt_text : null,
                 'attributes' => $v->attributes ?? [],
-                'priceTiers' => $v->priceTiers ? $v->priceTiers->map(fn($t) => [
+                'priceTiers' => ! $priceOnRequest && $v->priceTiers ? $v->priceTiers->map(fn($t) => [
                     'min_qty' => $t->min_qty,
                     'max_qty' => $t->max_qty,
                     'unit_price' => (float) $t->unit_price,
@@ -249,7 +256,9 @@ class ProductApiController extends Controller
             'seo_description' => $p->seo_description,
             'attributes_config' => $p->attributes_config,
             'page_settings' => $p->page_settings,
-            'customization_settings' => $p->customization_settings,
+            'customization_settings' => $priceOnRequest && $p->customization_settings !== null
+                ? array_diff_key($p->customization_settings, ['flat_fee' => true])
+                : $p->customization_settings,
             'customization_fields' => $p->relationLoaded('customizationFields') ? $p->customizationFields->map(fn($f) => [
                 'id' => $f->id,
                 'label' => $f->label,
@@ -258,7 +267,7 @@ class ProductApiController extends Controller
                 'options' => is_array($f->options) ? $f->options : (!empty($f->options) ? array_map('trim', explode(',', $f->options)) : null),
                 'accepted_extensions' => $f->accepted_extensions
             ])->values()->toArray() : [],
-            'additional_services' => $p->relationLoaded('additionalServices')
+            'additional_services' => ! $priceOnRequest && $p->relationLoaded('additionalServices')
                 ? $p->additionalServices
                     ->where('is_active', true)
                     ->map(fn ($s) => [

@@ -15,6 +15,16 @@ final class ProductListingPrice
      */
     public static function resolve(Product $product): array
     {
+        if ($product->price_on_request) {
+            return [
+                'price' => 'Price on request',
+                'numericPrice' => 0.0,
+                'priceRange' => false,
+                'priceMin' => 0.0,
+                'priceMax' => 0.0,
+            ];
+        }
+
         $fmt = fn (float $v): string => 'Rs. '.number_format($v, 2);
         $base = (float) $product->price;
         $variationPrices = self::variationEffectivePrices($product);

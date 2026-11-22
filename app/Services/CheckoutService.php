@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Exception;
 
 class CheckoutService
@@ -111,6 +112,11 @@ class CheckoutService
             // 5. Create Order Items (Preserving previous logic)
             foreach ($items as $index => $itemData) {
                 $product = Product::findOrFail($itemData['product_id']);
+                if ($product->price_on_request) {
+                    throw ValidationException::withMessages([
+                        'items' => "Request a quote for {$product->name} before ordering.",
+                    ]);
+                }
 
                 $unitPrice = (float) $product->price;
                 $variationId = $itemData['product_variation_id'] ?? $itemData['variation_id'] ?? null;

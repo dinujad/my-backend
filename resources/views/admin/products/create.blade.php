@@ -129,6 +129,12 @@
                         <!-- GENERAL TAB -->
                         <div x-show="tab === 'general'" x-transition.opacity>
                             <div class="space-y-4 max-w-lg">
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <input type="hidden" name="price_on_request" value="0">
+                                    <input type="checkbox" name="price_on_request" value="1" @checked(old('price_on_request', false)) class="rounded border-gray-300 text-brand-red focus:ring-brand-red">
+                                    Price on request
+                                </label>
+                                <p class="text-xs text-gray-500">Hide storefront prices and let customers request a quote. Saved prices can be used again when this is off.</p>
                                 <div class="flex items-center gap-4">
                                     <label class="w-1/3 text-sm text-gray-600 font-medium">Regular price (Rs.)</label>
                                     <input type="number" name="price" step="0.01" x-model.number="price" class="w-2/3 border border-gray-200 rounded-md px-3 py-1.5 focus:border-brand-red outline-none">

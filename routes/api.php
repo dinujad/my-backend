@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 */
 $publicRoutes = function () {
     Route::get('/products/search',                    [ProductApiController::class, 'search']);
+    Route::get('/product-pricing/price-on-request',   [ProductApiController::class, 'priceOnRequestIds']);
     Route::get('/products',                            [ProductApiController::class, 'index']);
     Route::get('/products/by-category/{categorySlug}', [ProductApiController::class, 'byCategory']);
     Route::get('/products/{slug}/reviews',             [ProductReviewApiController::class, 'index']);

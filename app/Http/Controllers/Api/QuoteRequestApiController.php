@@ -75,7 +75,7 @@ class QuoteRequestApiController extends Controller
                       ->orWhere('sku', 'like', "%{$q}%");
             })
             ->with(['variations.images', 'images'])
-            ->select('id', 'name', 'slug', 'sku', 'image', 'price')
+            ->select('id', 'name', 'slug', 'sku', 'image', 'price', 'price_on_request')
             ->limit(10)
             ->get()
             ->map(fn ($p) => [
@@ -84,7 +84,7 @@ class QuoteRequestApiController extends Controller
                 'slug'        => $p->slug,
                 'sku'         => $p->sku,
                 'image'       => $this->quoteImageUrl($p),
-                'price'       => $p->price,
+                'price'       => $p->price_on_request ? 'Price on request' : $p->price,
                 'variations'  => $p->variations->map(fn ($v) => [
                     'id'         => $v->id,
                     'sku'        => $v->sku,

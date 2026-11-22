@@ -81,6 +81,10 @@ class ProductController extends Controller
 
         unset($data['legacy_slugs']);
 
+        if ($data['price_on_request'] ?? false) {
+            $data['price'] ??= 0;
+        }
+
         // Map admin form "Sale price" → DB column "compare_price"
         if (array_key_exists('sale_price', $data)) {
             $data['compare_price'] = $data['sale_price'];
@@ -249,6 +253,10 @@ class ProductController extends Controller
         $data = $request->validated();
 
         unset($data['legacy_slugs']);
+
+        if (($data['price_on_request'] ?? $product->price_on_request) && ! isset($data['price'])) {
+            unset($data['price']);
+        }
 
         // Map admin form "Sale price" → DB column "compare_price"
         if (array_key_exists('sale_price', $data)) {

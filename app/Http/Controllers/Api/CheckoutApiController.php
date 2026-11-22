@@ -86,6 +86,8 @@ class CheckoutApiController extends Controller
                 ] : null,
             ], 201);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
         } catch (Exception $e) {
             Log::error("Checkout failed: " . $e->getMessage());
             return response()->json([

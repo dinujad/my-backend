@@ -19,7 +19,7 @@ class Product extends Model
         'product_type', 'status', 'visibility',
         'category_id', 'brand_id',
         'name', 'slug', 'legacy_slugs', 'description', 'short_description', 'sku',
-        'price', 'compare_price', 'offer_price', 'cost_price', 'tax_class', 'tax_status',
+        'price', 'price_on_request', 'compare_price', 'offer_price', 'cost_price', 'tax_class', 'tax_status',
         'discount_starts_at', 'discount_ends_at',
         'manage_stock', 'stock_quantity', 'low_stock_threshold', 'stock_status',
         'allow_backorders', 'sold_individually', 'min_purchase', 'max_purchase',
@@ -37,6 +37,7 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'price_on_request' => 'boolean',
             'compare_price' => 'decimal:2',
             'offer_price' => 'decimal:2',
             'cost_price' => 'decimal:2',
