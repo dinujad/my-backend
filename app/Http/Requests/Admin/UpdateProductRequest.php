@@ -2,12 +2,14 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\NormalizesProductFaqs;
 use App\Http\Requests\Concerns\NormalizesProductVariations;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
+    use NormalizesProductFaqs;
     use NormalizesProductVariations;
 
     public function authorize(): bool
@@ -17,6 +19,8 @@ class UpdateProductRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->normalizeProductFaqs();
+
         $variations = $this->input('variations');
         if (! is_array($variations)) {
             return;
@@ -85,7 +89,8 @@ class UpdateProductRequest extends FormRequest
             
             // Extensibility
             'seo_title' => 'nullable|string|max:60',
-            'faqs' => 'nullable|array|max:10',
+            'faqs' => 'nullable|array',
+            'faqs.*' => 'array:question,answer',
             'faqs.*.question' => 'required_with:faqs|string|max:255',
             'faqs.*.answer' => 'required_with:faqs|string|max:1000',
             'seo_description' => 'nullable|string|max:160',

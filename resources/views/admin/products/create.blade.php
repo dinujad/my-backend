@@ -661,6 +661,8 @@
                 </div>
             </div>
 
+            @include('admin.products.partials.faqs', ['savedFaqs' => []])
+
             <!-- SEO Settings Card -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
                 <h2 class="font-semibold text-gray-800 flex items-center gap-2">
